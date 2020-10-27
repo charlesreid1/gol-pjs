@@ -12,21 +12,6 @@
 
 (function () {
 
-  /*
-  var stats = new Stats();
-  stats.setMode( 0 ); // 0 FPS, 1 MS
-
-  // align top-left
-  stats.domElement.style.position = 'absolute';
-  stats.domElement.style.right = '0px';
-  stats.domElement.style.bottom = '0px';
-  stats.domElement.style.zIndex = '-999999';
-
-  document.addEventListener("DOMContentLoaded", function() {
-    document.body.appendChild( stats.domElement );
-  });
-  */
-
   var realBackgroundColor = "#272b30";
   var tileBackgroundColor = realBackgroundColor;
 
@@ -175,11 +160,17 @@
       schedule : false,
 
       schemes : [
-      {
-        columns : 120,
-        rows : 100,
-        cellSize : 7
-      }],
+        {
+          columns : 120,
+          rows : 100,
+          cellSize : 7
+        },
+        {
+          columns : 450,
+          rows : 216,
+          cellSize : 1
+        }
+      ],
 
     },
 
@@ -221,8 +212,8 @@
 
 
     /**
-         * On Load Event
-         */
+     * On Load Event
+     */
     init : function() {
       try {
         this.listLife.init();   // Reset/init algorithm
@@ -240,14 +231,15 @@
 
 
     /**
-         * Load config from URL
-         */
+     * Load config from URL
+     */
     loadConfig : function() {
       var colors, grid, zoom;
 
       // Add ?autoplay=1 to the end of the URL to enable autoplay
       this.autoplay = this.helpers.getUrlParameter('autoplay') === '1' ? true : this.autoplay;
       
+      // Add ?trail=1 to the end of the URL to show trails
       this.trail.current = this.helpers.getUrlParameter('trail') === '1' ? true : this.trail.current;
 
       // Initial color config
@@ -263,7 +255,10 @@
       }
 
       // Initial zoom config
-      zoom = 1;
+      zoom = parseInt(this.helpers.getUrlParameter('zoom'), 10);
+      if (isNaN(zoom) || zoom < 1 || zoom > GOL.zoom.schemes.length) {
+        zoom = 1;
+      }
 
       this.colors.current = colors - 1;
       this.grid.current = grid - 1;
@@ -275,8 +270,8 @@
 
 
     /**
-         * Load world state from URL parameter
-         */
+     * Load world state from URL parameter
+     */
     loadState : function() {
       var state, i, j, y, s = this.helpers.getUrlParameter('s');
 
@@ -349,7 +344,6 @@
      */
     keepDOMElements : function() {
       this.element.generation = document.getElementById('generation');
-      //this.element.steptime = document.getElementById('steptime');
       this.element.livecells = document.getElementById('livecells');
       this.element.messages.layout = document.getElementById('layoutMessages');
     },
@@ -461,7 +455,9 @@
 
 
       /**
-       *
+       * When user clicks down, set mouse down state
+       * and change change cell alive/dead state at
+       * the current mouse location.
        */
       canvasMouseDown : function(event) {
         var position = GOL.helpers.mousePosition(event);
@@ -473,7 +469,7 @@
 
 
       /**
-       *
+       * Handle user mouse up instance.
        */
       canvasMouseUp : function() {
         GOL.handlers.mouseDown = false;
@@ -481,7 +477,9 @@
 
 
       /**
-       *
+       * If we have captured a mouse down event,
+       * track where the mouse is going and change
+       * cell alive/dead state at mouse location.
        */
       canvasMouseMove : function(event) {
         if (GOL.handlers.mouseDown) {
@@ -496,7 +494,7 @@
 
 
       /**
-       *
+       * Allow keyboard shortcuts
        */
       keyboard : function(e) {
         var event = e;
@@ -522,13 +520,14 @@
         run : function() {
 
           GOL.running = !GOL.running;
+          // Update run/stop button state
           if (GOL.running) {
             GOL.nextStep();
-            $("#buttonRun").text("Stop");
+            document.getElementById('buttonRun').textContent = 'Stop';
             document.getElementById('buttonRun').classList.remove("btn-success");
             document.getElementById('buttonRun').classList.add("btn-danger");
           } else {
-            $("#buttonRun").text("Run");
+            document.getElementById('buttonRun').textContent = 'Run';
             document.getElementById('buttonRun').classList.remove("btn-danger");
             document.getElementById('buttonRun').classList.add("btn-success");
           }
@@ -576,7 +575,7 @@
 
 
         /**
-         *
+         * Draw the colors
          */
         colors : function() {
           GOL.colors.current = (GOL.colors.current + 1) % GOL.colors.schemes.length;
@@ -590,7 +589,7 @@
 
 
         /**
-         *
+         * Draw the grid
          */
         grid : function() {
           GOL.grid.current = (GOL.grid.current + 1) % GOL.grid.schemes.length;
@@ -794,42 +793,13 @@
 
 
       /**
-       *
+       * Initialize the actual state array (?)
        */
       init : function () {
         this.actualState = [];
       },
 
 
-      /**
-       *
-    NOTE: The following code is slower than the used one.
-    
-    (...)
-    
-    if (allDeadNeighbours[key] === undefined) {
-      allDeadNeighbours[key] = {
-            x: deadNeighbours[m][0],
-            y: deadNeighbours[m][1],
-            i: 1
-        };
-    } else {
-      allDeadNeighbours[key].i++;
-    }
-    
-    (...)
-            
-    // Process dead neighbours
-    for (key in allDeadNeighbours) {
-      
-      if (allDeadNeighbours[key].i === 3) { // Add new Cell
-        
-        this.addCell(allDeadNeighbours[key].x, allDeadNeighbours[key].y, newState);
-        alive++;
-        this.redrawList.push([allDeadNeighbours[key].x, allDeadNeighbours[key].y, 1]);
-      }
-    }
-    */
       nextGeneration : function() {
         var x, y, i, j, m, n, key, t1, t2, alive = 0, neighbours, deadNeighbours, allDeadNeighbours = {}, newState = [];
         this.redrawList = [];
@@ -895,8 +865,8 @@
       bottomPointer : 1,
 
       /**
-             *
-             */
+       *
+       */
       getNeighboursFromAlive : function (x, y, i, possibleNeighboursList) {
         var neighbours = 0, k;
 
