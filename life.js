@@ -273,7 +273,7 @@
      * Load world state from URL parameter
      */
     loadState : function() {
-      var state, i, j, y, s = this.helpers.getUrlParameter('s');
+      var state, s = this.helpers.getUrlParameter('s');
 
       if ( s === 'random') {
         this.randomState();
@@ -284,10 +284,21 @@
 
         state = jsonParse(decodeURI(s));
 
-        for (i = 0; i < state.length; i++) {
-          for (y in state[i]) {
-            for (j = 0 ; j < state[i][y].length ; j++) {
-              this.listLife.addCell(state[i][y][j], parseInt(y, 10), this.listLife.actualState);
+        // state is a 3-element array
+        // state[0] is a dictionary:
+        //    39: [60]
+        // state[1] is a dictionary:
+        //    40: [62]
+        // state[2] is a dictionary:
+        //    41: [59, 60, 63, 64, 65]
+
+        var irow, icol, y;
+        for (irow = 0; irow < state.length; irow++) {
+          for (y in state[irow]) {
+            for (icol = 0 ; icol < state[irow][y].length ; icol++) {
+              var yy = parseInt(y, 10);
+              var xx = state[irow][yy][icol];
+              this.listLife.addCell(xx, yy, this.listLife.actualState);
             }
           }
         }
