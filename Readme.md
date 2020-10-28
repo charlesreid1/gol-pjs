@@ -1,6 +1,7 @@
 # GOL-PJs
 
-gol-pjs (pronounced goal - pee jays) is a set of tools for Game of Life.
+gol-pjs (pronounced goal - pee jays) is a set of tools for [Conway's Game of
+Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
 
 The Python representation of the Game of Life in this repo is intended to initialize
 and run the Game of Life, and to allow an import or export of its state at any given point.
