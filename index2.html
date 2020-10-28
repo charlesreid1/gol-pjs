@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+<meta content="utf-8" http-equiv="encoding">
+<html lang="en">
+<head>
+    <title>Game of Life</title>
+    <meta charset="utf-8" />
+    <link href="slate.css" rel="stylesheet" type="text/css">
+</head>
+<body id="index">
+
+
+<div class="container">
+
+
+<div class="row">
+    <h1 style="color: #eee;">Conway's Game of Life</h1>
+</div>
+
+<p>&nbsp;</p>
+
+<p>To get started, click the Run button below, or interact with the grid 
+below to fill in cells. You can also interact with the grid while the simulation
+is running by deleting live cells that you click. The initial pattern on this 
+grid below is the Acorn pattern. Refresh the page to get an Acorn back.</p>
+
+<p>If you're not sure what all of this is about, check out the
+Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's Game of Life</a>.
+</p>
+
+<div class="row">
+    <div class="col-md-3">
+
+        <ul class="list-group">
+          <li class="list-group-item">
+            <span class="badge label label-default" id="generation"></span>
+            Generation:
+          </li>
+          <li class="list-group-item">
+            <span class="badge label label-default" id="livecells"></span>
+            Live Cells:
+          </li>
+        </ul>
+
+        <p>
+            <span class="label label-default" id="layoutMessages"></span>
+        </p>
+
+    </div>
+    <div class="col-md-3">
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Life Control</h3>
+            </div>
+            <div class="panel-body">
+
+                <div class="box controls">
+                    <form action="">
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <button type="button" id="buttonRun"   class="btn btn-lg btn-success btn-secondary">Run</button>
+                            <button type="button" id="buttonStep"  class="btn btn-lg btn-default btn-secondary">Step</button>
+                            <button type="button" id="buttonClear" class="btn btn-lg btn-default btn-secondary">Clear</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+    <div class="col-md-3">
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Layout Control</h3>
+            </div>
+            <div class="panel-body">
+
+                <div class="box controls">
+                    <form action="">
+                        <div class="btn-group" role="group" aria-label="Basic example">
+                            <button type="button" id="buttonTrail"  class="btn btn-lg btn-default btn-secondary">Trail</button>
+                            <button type="button" id="buttonGrid"   class="btn btn-lg btn-default btn-secondary">Grid</button>
+                            <button type="button" id="buttonColors" class="btn btn-lg btn-default btn-secondary">Colors</button>
+                        </div>
+                    </form>
+                </div>
+
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<p>&nbsp;</p>
+
+<div class="row">
+
+    <canvas id="canvas" width="900" height="450"></canvas>
+
+    <p>&nbsp;</p>
+    <p>&nbsp;</p>
+
+</div>
+
+</div>
+
+<script src="json-sans-eval.js"></script>
+<script src="life2.js"></script>
+
+</body>
+</html>
