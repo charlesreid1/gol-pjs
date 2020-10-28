@@ -3,19 +3,28 @@
 gol-pjs (pronounced goal - pee jays) is a set of tools for [Conway's Game of
 Life](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life).
 
-The Python representation of the Game of Life in this repo is intended to initialize
-and run the Game of Life, and to allow an import or export of its state at any given point.
-This can then be loaded into the Javascript representation to use it as a viewer.
+This repo contains Javascript and Python implementations of the Game of Life
+using the List Life algorithm.
 
-The Javascript representation of the Game of Life in this repo can be used in two ways:
+## Start Page
 
-* As a standalone Game of Life simulator, advancing the state of the game and
-  applying the rules itself to evolve the state (and providing a way of exporting
-  the state of the game at a given point, to share later)
+To visit the start page, run a web server to host the pages in this directory.
+For example, run this Python command:
 
-* As a viewer for a particular state of a particular game that was generated
-  using the Python Game of Life simulator
+<pre>
+python -m http.server 8000
+</pre>
 
-## Javascript
+and visit `http://localhost:8000` in your browser to view the page.
 
+## Normal Life
+
+"Normal" Life is a normal one-color Game of Life that uses the normal rules of Life.
+
+## Binary Life
+
+Binary Life is a two-color Game of Life. The game operates the same way as normal Life,
+but when a new cell is born, it takes on the color of the majority of its parents.
+This second layer of Life is what makes it possible to create the splort of golly
+from the Game of Life.
 
