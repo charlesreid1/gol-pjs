@@ -221,7 +221,7 @@
       }
 
       // state 2 parameter
-      if ( s2 === 'random') {
+      if ( s1 === 'random') {
         this.randomState();
       } else {
         if (s2 == undefined) {
@@ -250,7 +250,7 @@
     randomState : function() {
       // original pct was 12%, for binary we split 5%
       var i, liveCells = (this.rows * this.columns) * 0.05;
-      
+
       // Color 1
       for (i = 0; i < liveCells; i++) {
         var xx = this.helpers.random(0, this.columns - 1);
@@ -274,7 +274,7 @@
         this.listLife.addCell(xx, yy, this.listLife.actualState2);
       }
 
-      this.listLife.nextGeneration();
+      //this.listLife.nextGeneration();
     },
 
 
@@ -563,7 +563,7 @@
          * Button Handler - Remove/Add Trail
          */
         trail : function() {
-          GOL.element.messages.layout.innerHTML = GOL.trail.current ? 'Trail is Off' : 'Trail is On';
+          //GOL.element.messages.layout.innerHTML = GOL.trail.current ? 'Trail is Off' : 'Trail is On';
           GOL.trail.current = !GOL.trail.current;
           if (GOL.running) {
             GOL.trail.schedule = true;
@@ -578,7 +578,7 @@
          */
         grid : function() {
           GOL.grid.current = (GOL.grid.current + 1) % GOL.grid.schemes.length;
-          GOL.element.messages.layout.innerHTML = 'Grid Scheme #' + (GOL.grid.current + 1);
+          //GOL.element.messages.layout.innerHTML = 'Grid Scheme #' + (GOL.grid.current + 1);
           if (GOL.running) {
             GOL.grid.schedule = true; // Delay redraw
           } else {
@@ -801,14 +801,16 @@
       getLiveCounts : function() {
         var i, j;
 
+        var z = GOL.zoom.schemes[GOL.zoom.current];
+
         var state = GOL.listLife.actualState;
         var liveCells = 0;
         var coverageCells = 0;
         for (i = 0; i < state.length; i++) {
           coverageCells += (state[i].length - 1)
-          if (state[i][0] > 0) {
+          if ((state[i][0] >= 0) && (state[i][0]) < z.rows) {
             for (j = 1; j < state[i].length; j++) {
-              if (state[i][j] > 0) {
+              if ((state[i][j] > 0) && (state[i][j] < z.columns)) {
                 liveCells++;
               }
             }
@@ -818,9 +820,9 @@
         var state1 = GOL.listLife.actualState1;
         var liveCells1 = 0;
         for (i = 0; i < state1.length; i++) {
-          if (state1[i][0] > 0) {
+          if ((state1[i][0] >= 0) && (state1[i][0]) < z.rows) {
             for (j = 1; j < state1[i].length; j++) {
-              if (state1[i][j] > 0) {
+              if ((state1[i][j] > 0) && (state1[i][j] < z.columns)) {
                 liveCells1++;
               }
             }
@@ -830,9 +832,9 @@
         var state2 = GOL.listLife.actualState2;
         var liveCells2 = 0;
         for (i = 0; i < state2.length; i++) {
-          if (state2[i][0] > 0) {
+          if ((state2[i][0] >= 0) && (state2[i][0]) < z.rows) {
             for (j = 1; j < state2[i].length; j++) {
-              if (state2[i][j] > 0) {
+              if ((state2[i][j] > 0) && (state2[i][j] < z.columns)) {
                 liveCells2++;
               }
             }
