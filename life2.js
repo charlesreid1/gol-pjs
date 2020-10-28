@@ -27,7 +27,8 @@
   var grays = ["#3a3a3a", "#404040"];
 
   // seafoam green/candy red
-  var binary_colors = ["#4c9090", "#ff1717"];
+  var binary_colors = ["#9fe2bf", "#ff1717"];
+  var binary_colors_labels = ['green', 'red'];
 
   var GOL = {
 
@@ -57,6 +58,8 @@
     element : {
       generation : null,
       livecells : null,
+      livecells1 : null,
+      livecells2 : null,
       messages : {
         layout : null
       }
@@ -65,8 +68,7 @@
     // Initial state
     // cmr - this is where we set initialState1 and initialState2
     initialState1 : '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
-    //initialState2 : '[{"23":[30]},{"22":[32]},{"21":[29,30,33,34,35]}]',
-    initialState2 : '[]',
+    initialState2 : '[{"23":[30]},{"22":[32]},{"21":[29,30,33,34,35]}]',
 
     // Trail state
     trail : {
@@ -80,12 +82,12 @@
       current : 0,
 
       schemes : [
-      {
-        color : tileStrokeColor1
-      },
-      {
-        color : '' // Special case: 0px grid
-      }
+        {
+          color : tileStrokeColor1
+        },
+        {
+          color : '' // Special case: 0px grid
+        }
       ]
     },
 
@@ -135,11 +137,10 @@
       try {
         this.listLife.init();   // Reset/init algorithm
         this.loadConfig();      // Load config from URL (autoplay, colors, zoom, ...)
-        this.loadState();       // Load state from URL
         this.keepDOMElements(); // Keep DOM References (getElementsById)
+        this.loadState();       // Load state from URL
         this.canvas.init();     // Init canvas GUI
         this.registerEvents();  // Register event handlers
-    
         this.prepare();
       } catch (e) {
         alert("Error: "+e);
@@ -247,13 +248,17 @@
      * Create a random pattern
      */
     randomState : function() {
-      // original pct was 12%, for binary we split 8%
-      var i, liveCells = (this.rows * this.columns) * 0.08;
+      // original pct was 12%, for binary we split 5%
+      var i, liveCells = (this.rows * this.columns) * 0.05;
       
       // Color 1
       for (i = 0; i < liveCells; i++) {
         var xx = this.helpers.random(0, this.columns - 1);
         var yy = this.helpers.random(0, this.rows - 1);
+        while (this.listLife.isAlive(xx, yy)) {
+            xx = this.helpers.random(0, this.columns - 1);
+            yy = this.helpers.random(0, this.rows - 1);
+        }
         this.listLife.addCell(xx, yy, this.listLife.actualState);
         this.listLife.addCell(xx, yy, this.listLife.actualState1);
       }
@@ -261,6 +266,10 @@
       for (i = 0; i < liveCells; i++) {
         var xx = this.helpers.random(0, this.columns - 1);
         var yy = this.helpers.random(0, this.rows - 1);
+        while (this.listLife.isAlive(xx, yy)) {
+            xx = this.helpers.random(0, this.columns - 1);
+            yy = this.helpers.random(0, this.rows - 1);
+        }
         this.listLife.addCell(xx, yy, this.listLife.actualState);
         this.listLife.addCell(xx, yy, this.listLife.actualState2);
       }
@@ -286,7 +295,16 @@
       this.mouseDown = this.clear.schedule = false;
 
       this.element.generation.innerHTML = '0';
-      this.element.livecells.innerHTML = '0';
+
+      liveCounts = this.getCounts();
+
+      this.element.livecells.innerHTML  = liveCounts[0];
+      this.element.livecells1.innerHTML = liveCounts[1];
+      this.element.livecells2.innerHTML = liveCounts[2];
+      this.element.victory.innerHTML    = liveCounts[3] + "%";
+      this.element.coverage.innerHTML   = liveCounts[4] + "%";
+      this.element.territory1.innerHTML = liveCounts[5] + "%";
+      this.element.territory2.innerHTML = liveCounts[6] + "%";
 
       this.canvas.clearWorld(); // Reset GUI
       this.canvas.drawWorld(); // Draw State
@@ -297,6 +315,10 @@
       }
     },
 
+    getCounts : function() {
+      var liveCounts = GOL.listLife.getLiveCounts();
+      return liveCounts;
+    },
 
     /**
      * keepDOMElements
@@ -304,7 +326,15 @@
      */
     keepDOMElements : function() {
       this.element.generation = document.getElementById('generation');
-      this.element.livecells = document.getElementById('livecells');
+      this.element.livecells  = document.getElementById('livecells');
+      this.element.livecells1 = document.getElementById('livecells1');
+      this.element.livecells2 = document.getElementById('livecells2');
+
+      this.element.victory    = document.getElementById('victoryPct');
+      this.element.coverage   = document.getElementById('coverage');
+      this.element.territory1 = document.getElementById('territory1');
+      this.element.territory2 = document.getElementById('territory2');
+
       this.element.messages.layout = document.getElementById('layoutMessages');
     },
 
@@ -334,13 +364,15 @@
      * Run Next Step
      */
     nextStep : function() {
-      var i, x, y, r, liveCellNumber, algorithmTime, guiTime;
+      var i, x, y, r;
+      var liveCellNumbers, liveCellNumber, liveCellNumber1, liveCellNumber2;
+      var algorithmTime, guiTime;
 
       // Algorithm run
     
       algorithmTime = (new Date());
 
-      liveCellNumber = GOL.listLife.nextGeneration();
+      liveCounts = GOL.listLife.nextGeneration();
 
       algorithmTime = (new Date()) - algorithmTime;
 
@@ -387,7 +419,14 @@
       // Running Information
       GOL.generation++;
       GOL.element.generation.innerHTML = GOL.generation;
-      GOL.element.livecells.innerHTML = liveCellNumber;
+
+      GOL.element.livecells.innerHTML  = liveCounts[0];
+      GOL.element.livecells1.innerHTML = liveCounts[1];
+      GOL.element.livecells2.innerHTML = liveCounts[2];
+      GOL.element.victory.innerHTML    = liveCounts[3] + "%";
+      GOL.element.coverage.innerHTML   = liveCounts[4] + "%";
+      GOL.element.territory1.innerHTML = liveCounts[5] + "%";
+      GOL.element.territory2.innerHTML = liveCounts[6] + "%";
 
       r = 1.0/GOL.generation;
       GOL.times.algorithm = (GOL.times.algorithm * (1 - r)) + (algorithmTime * r);
@@ -665,18 +704,7 @@
                 
         if (alive) {
 
-          /*
-          // color by age
-          if (this.age[i][j] > -1)
-            this.context.fillStyle = GOL.colors.schemes[GOL.colors.current].alive[this.age[i][j] % GOL.colors.schemes[GOL.colors.current].alive.length];
-          */
-
           // color by... color
-          console.log('drawCell(' + i + ',' + j + '): color = ' + GOL.colors.schemes[GOL.colors.current].alive[GOL.listLife.getCellColor(i, j) - 1]);
-          console.log(' - GOL.listLife.getCellColor(' + i + ',' + j + ') = ' + GOL.listLife.getCellColor(i, j));
-          console.log(' - s: ' + GOL.listLife.actualState);
-          console.log(' - s1: ' + GOL.listLife.actualState1);
-          console.log(' - s2: ' + GOL.listLife.actualState2);
           this.context.fillStyle = GOL.colors.schemes[GOL.colors.current].alive[GOL.listLife.getCellColor(i, j) - 1];
 
         } else {
@@ -697,24 +725,22 @@
        * cmr - this is only activated when a user clicks on a cell
        */
       switchCell : function(i, j) {
-        /*
         if (GOL.listLife.isAlive(i, j)) {
-            if (GOL.listLife.getCellColor(i, j) == 1) {
-                // Swap colors
-                GOL.listLife.removeCell(i, j, GOL.listLife.actualState1);
-                GOL.listLife.addCell(i, j, GOL.listLife.actualState2);
-                this.keepCellAlive(i, j);
-            } else {
-                GOL.listLife.removeCell(i, j, GOL.listLife.actualState);
-                GOL.listLife.removeCell(i, j, GOL.listLife.actualState2);
-                this.changeCelltoDead(i, j);
-            }
+          if (GOL.listLife.getCellColor(i, j) == 1) {
+            // Swap colors
+            GOL.listLife.removeCell(i, j, GOL.listLife.actualState1);
+            GOL.listLife.addCell(i, j, GOL.listLife.actualState2);
+            this.keepCellAlive(i, j);
+          } else {
+            GOL.listLife.removeCell(i, j, GOL.listLife.actualState);
+            GOL.listLife.removeCell(i, j, GOL.listLife.actualState2);
+            this.changeCelltoDead(i, j);
+          }
         } else {
           GOL.listLife.addCell(i, j, GOL.listLife.actualState);
           GOL.listLife.addCell(i, j, GOL.listLife.actualState1);
           this.changeCelltoAlive(i, j);
         }
-        */
       },
 
 
@@ -772,11 +798,81 @@
       },
 
 
+      getLiveCounts : function() {
+        var i, j;
+
+        var state = GOL.listLife.actualState;
+        var liveCells = 0;
+        var coverageCells = 0;
+        for (i = 0; i < state.length; i++) {
+          coverageCells += (state[i].length - 1)
+          if (state[i][0] > 0) {
+            for (j = 1; j < state[i].length; j++) {
+              if (state[i][j] > 0) {
+                liveCells++;
+              }
+            }
+          }
+        }
+
+        var state1 = GOL.listLife.actualState1;
+        var liveCells1 = 0;
+        for (i = 0; i < state1.length; i++) {
+          if (state1[i][0] > 0) {
+            for (j = 1; j < state1[i].length; j++) {
+              if (state1[i][j] > 0) {
+                liveCells1++;
+              }
+            }
+          }
+        }
+
+        var state2 = GOL.listLife.actualState2;
+        var liveCells2 = 0;
+        for (i = 0; i < state2.length; i++) {
+          if (state2[i][0] > 0) {
+            for (j = 1; j < state2[i].length; j++) {
+              if (state2[i][j] > 0) {
+                liveCells2++;
+              }
+            }
+          }
+        }
+
+        var victoryPct;
+        if (liveCells1 > liveCells2) { 
+          victoryPct = liveCells1/(1.0*liveCells1 + liveCells2);
+        } else {
+          victoryPct = liveCells2/(1.0*liveCells1 + liveCells2);
+        }
+        victoryPct = (victoryPct * 100).toFixed(2);
+
+        var z = GOL.zoom.schemes[GOL.zoom.current];
+        var totalArea = z.columns * z.rows;
+        var coverage = coverageCells/(1.0*totalArea);
+        coverage = (coverage * 100).toFixed(2);
+
+        var territory1 = liveCells1/(1.0*totalArea);
+        territory1 = (territory1 * 100).toFixed(2);
+        var territory2 = liveCells2/(1.0*totalArea);
+        territory2 = (territory2 * 100).toFixed(2);
+
+        return [
+          liveCells, 
+          liveCells1,
+          liveCells2,
+          victoryPct,
+          coverage,
+          territory1,
+          territory2
+        ];
+      },
+
+
       nextGeneration : function() {
 
-        // somewhere our color problem is happening here... newState2
-
-        var x, y, i, j, m, n, key, t1, t2, alive = 0;
+        var x, y, i, j, m, n, key, t1, t2;
+        var alive = 0, alive1 = 0, alive2 = 0;
         var deadNeighbors;
         var newState = [], newState1 = [], newState2 = [];
         var allDeadNeighbors = {};
@@ -825,16 +921,12 @@
             }
 
             if (!(neighbors === 0 || neighbors === 1 || neighbors > 3)) {
-              // how to get color???
-              //newColor = this.getNeighborsFromColors(x, y, i, deadNeighbors);
               this.addCell(x, y, newState);
               if (color==1) {
                 this.addCell(x, y, newState1);
-              }
-              if (color==2) {
+              } else if (color==2) {
                 this.addCell(x, y, newState2);
               }
-              alive++;
               this.redrawList.push([x, y, 2]); // Keep alive
             } else {
               this.redrawList.push([x, y, 0]); // Kill cell
@@ -851,7 +943,7 @@
             t1 = parseInt(key[0], 10);
             t2 = parseInt(key[1], 10);
 
-            // Neighbors
+            // Get color from neighboring parent cells
             color = this.getColorFromAlive(t1, t2);
 
             this.addCell(t1, t2, newState);
@@ -861,7 +953,6 @@
               this.addCell(t1, t2, newState2);
             }
 
-            alive++;
             this.redrawList.push([t1, t2, 1]);
           }
         }
@@ -870,7 +961,7 @@
         this.actualState1 = newState1;
         this.actualState2 = newState2;
 
-        return alive;
+        return this.getLiveCounts();
       },
 
 
@@ -905,6 +996,9 @@
                   color1++;
                 }
               }
+              if (xx >= (x+1)) {
+                break;
+              }
             }
 
           } else if (yy === y) {
@@ -919,6 +1013,9 @@
                   // top right
                   color1++;
                 }
+              }
+              if (xx >= (x+1)) {
+                break;
               }
             }
 
@@ -937,6 +1034,9 @@
                   // bottom right
                   color1++;
                 }
+              }
+              if (xx >= (x+1)) {
+                break;
               }
             }
           }
@@ -962,6 +1062,9 @@
                   color2++;
                 }
               }
+              if (xx >= (x+1)) {
+                break;
+              }
             }
 
           } else if (yy === y) {
@@ -976,6 +1079,9 @@
                   // top right
                   color2++;
                 }
+              }
+              if (xx >= (x+1)) {
+                break;
               }
             }
 
@@ -994,6 +1100,9 @@
                   // bottom right
                   color2++;
                 }
+              }
+              if (xx >= (x+1)) {
+                break;
               }
             }
           }
