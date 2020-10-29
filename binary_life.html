@@ -20,71 +20,109 @@
 <p>&nbsp;</p>
 
 <p>To get started, click the Run button below, or interact with the grid 
-below to fill in cells. You can also interact with the grid while the simulation
-is running by deleting live cells that you click. The initial pattern on this 
-grid below is the Acorn pattern. Refresh the page to get an Acorn back.</p>
+below to fill in cells. Binary life works the same as normal life, except
+when new cells are born, they take on the color that the majority of their
+parent cells have. Each team begins below with the acorn pattern. Refresh the
+page to get the acorn pattern back.</p>
 
 <p>If you're not sure what all of this is about, check out the
 Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's Game of Life</a>.
 </p>
 
 <div class="row">
-    <div class="col-md-3">
 
-        <ul class="list-group">
+    <div class="col-md-4">
 
-          <li class="list-group-item">
-            <span class="badge label label-default" id="generation"></span>
-            Generation:
-          </li>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Scoreboard</h3>
+            </div>
 
-          <li class="list-group-item">
-            <span class="badge label label-default" id="livecells"></span>
-            Live Cells:
-          </li>
+            <div class="panel-body">
 
-          <li class="list-group-item">
-            <span class="badge label label-default" id="livecells1"></span>
-            Live <font color="#9fe2bf">Green</font> Cells:
-          </li>
+                <table width="100%"><tr><td>
+                    <h4><font color="#9fe2bf">Green</font> Cells:</h4>
+                </td><td align="right">
+                     <h4><font color="#9fe2bf" id="livecells1">0</font>
+                </td></tr></table>
 
-          <li class="list-group-item">
-            <span class="badge label label-default" id="livecells2"></span>
-            Live <font color="#ff1717">Red</font> Cells:
-          </li>
+            </div>
 
-        </ul>
+            <div class="panel-body">
 
-        <p>
-            <span class="label label-default" id="layoutMessages"></span>
-        </p>
+                <table width="100%"><tr><td>
+                    <h4><font color="#ff1717">Red</font> Cells:</h4>
+                </td><td align="right">
+                   <h4><font color="#ff1717" id="livecells2">0</font>
+                </td></tr></table>
+
+            </div>
+
+            <div class="panel-body">
+
+                <table width="100%"><tr><td>
+                    <h4>Generation:</h4>
+                </td><td align="right">
+                      <h4><span id="generation">0</span></h4>
+                </td></tr></table>
+
+            </div>
+        </div>
 
     </div>
+
     <div class="col-md-3">
 
-        <ul class="list-group">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">Stlatsboard</h3>
+            </div>
 
-          <li class="list-group-item">
-            <span class="badge label label-default" id="victoryPct"></span>
-            Victory Percentage:
-          </li>
+            <div class="panel-body">
+                <table width="100%"><tr><td>
+                  <font color="#9fe2bf">Green</font> Territory:
+                </td><td align="right">
+                  <font color="#9fe2bf">
+                  <span id="territory1"></span>
+                  </font>
+                </td></tr></table>
+            </div>
 
-          <li class="list-group-item">
-            <span class="badge label label-default" id="coverage"></span>
-            Coverage:
-          </li>
+            <div class="panel-body">
+                <table width="100%"><tr><td>
+                  <font color="#ff1717">Red</font> Territory:
+                </td><td align="right">
+                  <font color="#ff1717">
+                  <span id="territory2"></span>
+                  </font>
+                </td></tr></table>
+            </div>
 
-          <li class="list-group-item">
-            <span class="badge label label-default" id="territory1"></span>
-            <font color="#9fe2bf">Green</font> Territory:
-          </li>
+            <div class="panel-body">
+                <table width="100%"><tr><td>
+                  Victory Percentage:
+                </td><td align="right">
+                  <span id="victoryPct"></span>
+                </td></tr></table>
+            </div>
 
-          <li class="list-group-item">
-            <span class="badge label label-default" id="territory2"></span>
-            <font color="#ff1717">Red</font> Territory:
-          </li>
+            <div class="panel-body">
+                <table width="100%"><tr><td>
+                  Live Cells:
+                </td><td align="right">
+                  <span id="livecells"></span>
+                </td></tr></table>
+            </div>
 
-        </ul>
+            <div class="panel-body">
+                <table width="100%"><tr><td>
+                  Coverage:
+                </td><td align="right">
+                  <span id="coverage"></span>
+                </td></tr></table>
+            </div>
+
+        </div>
 
     </div>
     <div class="col-md-3">
@@ -119,7 +157,10 @@ Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_L
                         <div class="btn-group" role="group" aria-label="Basic example">
                             <button type="button" id="buttonTrail"  class="btn btn-lg btn-default btn-secondary">Trail</button>
                             <button type="button" id="buttonGrid"   class="btn btn-lg btn-default btn-secondary">Grid</button>
+                            <!--
+                                make this dependent on the sandbox/game viewer state
                             <button type="button" id="buttonColors" class="btn btn-lg btn-default btn-secondary">Colors</button>
+                            -->
                         </div>
                     </form>
                 </div>
