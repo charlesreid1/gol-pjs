@@ -1,0 +1,6 @@
+.scoreboard-panel {
+  font-size: 18px;
+}
+.scoreboard-panel span, .stlatsboard-panel span {
+  padding: 5px;
+}
