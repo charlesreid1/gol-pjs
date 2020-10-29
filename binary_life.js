@@ -19,35 +19,25 @@
 
   // Constants
 
+  // Colors
   var realBackgroundColor = "#272b30";
-  var tileBackgroundColor = realBackgroundColor;
-
-  var tileStrokeColor1    = "#3a3a3a";
-  var tileStrokeColor2    = "#4a4a4a";
-
-  var lightTileColor      = "#eee";
-
-  var darkTileColors      = ["#333","#444","#555"];
-
-  var greens = ["#41ab5d", "#238b45", "#006d2c", "#00441b"];
-
+  var gridStrokeColor1    = "#3a3a3a";
   var grays = ["#3a3a3a", "#404040"];
 
-  // seafoam green/candy red
-  var binary_colors = ["#9fe2bf", "#ff1717"];
-  var binary_colors_labels = ['green', 'red'];
 
-
-  // Used by default
 
   var GOL = {
 
     gameApiResult: {
       id: '0000-0000-0000',
-      team1Name: 'Green',
-      team1Color: '#9fe2bf',
-      team2Name: 'Red',
-      team2Color: '#ff1717',
+      team1Name: 'Purple',
+      //team1Color: '#9fe2bf',
+      team1Color: '#521168',
+      team1SecondaryColor: '#9963AB',
+      team2Name: 'Orange',
+      //team2Color: '#ff1717',
+      team2Color: '#bf5315',
+      team2SecondaryColor: '#D19673',
       map: {
         id: 1,
         mapName: 'Main Map',
@@ -65,6 +55,7 @@
 
     teamNames: [],
     teamColors: [],
+    teamSecondaryColors: [],
 
     columns : 0,
     rows : 0,
@@ -95,6 +86,14 @@
       livecells : null,
       livecells1 : null,
       livecells2 : null,
+      victory: null,
+      coverage: null,
+      territory1: null,
+      territory2: null,
+      team1color: null,
+      team1name: null,
+      team2color: null,
+      tam2name: null,
       messages : {
         layout : null
       }
@@ -118,7 +117,7 @@
 
       schemes : [
         {
-          color : tileStrokeColor1
+          color : gridStrokeColor1
         },
         {
           color : '' // Special case: 0px grid
@@ -209,8 +208,9 @@
         this.initialState2 = this.gameApiResult['map']['initialConditions2'];
 
         // Team names and colors
-        this.teamNames = [this.gameApiResult['team1Name'], this.gameApiResult['team2Name']];
-        this.teamColors = [this.gameApiResult['team1Color'], this.gameApiResult['team2Color']];
+        this.teamNames = [this.gameApiResult.team1Name, this.gameApiResult.team2Name];
+        this.teamColors = [this.gameApiResult.team1Color, this.gameApiResult.team2Color];
+        this.teamSecondaryColors = [this.gameApiResult.team1SecondaryColor, this.gameApiResult.team2SecondaryColor];
         this.colors.alive = this.teamColors;
 
         // Zoom info from map
@@ -227,6 +227,7 @@
         // Team names and colors
         this.teamNames = [this.gameApiResult.team1Name, this.gameApiResult.team2Name];
         this.teamColors = [this.gameApiResult.team1Color, this.gameApiResult.team2Color];
+        this.teamSecondaryColors = [this.gameApiResult.team1SecondaryColor, this.gameApiResult.team2SecondaryColor];
         this.colors.alive = this.teamColors;
 
         // Parse zoom options and pick out scheme
@@ -386,6 +387,26 @@
       this.element.territory1.innerHTML = liveCounts[5] + "%";
       this.element.territory2.innerHTML = liveCounts[6] + "%";
 
+      var i, e;
+      for (i = 0; i < this.element.team1color.length; i++) {
+        e = this.element.team1color[i];
+        e.style.color = this.teamColors[0];
+        e.style.background = this.teamSecondaryColors[0];
+      }
+      for (i = 0; i < this.element.team2color.length; i++) {
+        e = this.element.team2color[i];
+        e.style.color = this.teamColors[1];
+        e.style.background = this.teamSecondaryColors[1];
+      }
+      for (i = 0; i < this.element.team1name.length; i++) {
+        e = this.element.team1name[i];
+        e.innerHTML = this.teamNames[0];
+      }
+      for (i = 0; i < this.element.team2name.length; i++) {
+        e = this.element.team2name[i];
+        e.innerHTML = this.teamNames[1];
+      }
+
       this.canvas.clearWorld(); // Reset GUI
       this.canvas.drawWorld(); // Draw State
 
@@ -414,6 +435,11 @@
       this.element.coverage   = document.getElementById('coverage');
       this.element.territory1 = document.getElementById('territory1');
       this.element.territory2 = document.getElementById('territory2');
+
+      this.element.team1color = document.getElementsByClassName("team1color");
+      this.element.team1name  = document.getElementsByClassName("team1name");
+      this.element.team2color = document.getElementsByClassName("team2color"); 
+      this.element.team2name  = document.getElementsByClassName("team2name");  
 
       this.element.messages.layout = document.getElementById('layoutMessages');
     },
@@ -967,11 +993,6 @@
           for (j = 1; j < this.actualState[i].length; j++) {
             x = this.actualState[i][j];
             y = this.actualState[i][0];
-
-            // cmr - lost somewhere in here
-            // dead neighbors... what is this?
-            // might need getNeighborsFromAlive to return two items wrapped in a dict
-            // neighbors, and color
 
             // Possible dead neighbors
             deadNeighbors = [[x-1, y-1, 1], [x, y-1, 1], [x+1, y-1, 1], [x-1, y, 1], [x+1, y, 1], [x-1, y+1, 1], [x, y+1, 1], [x+1, y+1, 1]];
