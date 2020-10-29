@@ -6,6 +6,7 @@
     <title>Game of Life</title>
     <meta charset="utf-8" />
     <link href="slate.css" rel="stylesheet" type="text/css">
+    <link href="custom.css" rel="stylesheet" type="text/css">
 </head>
 <body id="index">
 
@@ -38,32 +39,32 @@ Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_L
                 <h3 class="panel-title">Scoreboard</h3>
             </div>
 
-            <div class="panel-body">
+            <div class="panel-body scoreboard-panel">
 
                 <table width="100%"><tr><td>
-                    <h4><font color="#9fe2bf">Green</font> Cells:</h4>
+                  <span class="team1color team1name"></span> Cells:
                 </td><td align="right">
-                     <h4><font color="#9fe2bf" id="livecells1">0</font>
+                  <span class="team1color" id="livecells1"></span>
                 </td></tr></table>
 
             </div>
 
-            <div class="panel-body">
+            <div class="panel-body scoreboard-panel">
 
                 <table width="100%"><tr><td>
-                    <h4><font color="#ff1717">Red</font> Cells:</h4>
+                  <span class="team2color team2name"></span> Cells:
                 </td><td align="right">
-                   <h4><font color="#ff1717" id="livecells2">0</font>
+                  <span class="team2color" id="livecells2"></span>
                 </td></tr></table>
 
             </div>
 
-            <div class="panel-body">
+            <div class="panel-body scoreboard-panel">
 
                 <table width="100%"><tr><td>
-                    <h4>Generation:</h4>
+                  Generation:
                 </td><td align="right">
-                      <h4><span id="generation">0</span></h4>
+                  <span id="generation"></span>
                 </td></tr></table>
 
             </div>
@@ -78,27 +79,23 @@ Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_L
                 <h3 class="panel-title">Stlatsboard</h3>
             </div>
 
-            <div class="panel-body">
+            <div class="panel-body stlatsboard-panel">
                 <table width="100%"><tr><td>
-                  <font color="#9fe2bf">Green</font> Territory:
+                  <span class="team1color team1name"></span> Territory:
                 </td><td align="right">
-                  <font color="#9fe2bf">
-                  <span id="territory1"></span>
-                  </font>
+                  <span class="team1color" id="territory1"></span>
                 </td></tr></table>
             </div>
 
-            <div class="panel-body">
+            <div class="panel-body stlatsboard-panel">
                 <table width="100%"><tr><td>
-                  <font color="#ff1717">Red</font> Territory:
+                  <span class="team2color team2name"></span> Territory:
                 </td><td align="right">
-                  <font color="#ff1717">
-                  <span id="territory2"></span>
-                  </font>
+                  <span class="team2color" id="territory2"></span>
                 </td></tr></table>
             </div>
 
-            <div class="panel-body">
+            <div class="panel-body stlatsboard-panel">
                 <table width="100%"><tr><td>
                   Victory Percentage:
                 </td><td align="right">
@@ -106,7 +103,7 @@ Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_L
                 </td></tr></table>
             </div>
 
-            <div class="panel-body">
+            <div class="panel-body stlatsboard-panel">
                 <table width="100%"><tr><td>
                   Live Cells:
                 </td><td align="right">
@@ -114,7 +111,7 @@ Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_L
                 </td></tr></table>
             </div>
 
-            <div class="panel-body">
+            <div class="panel-body stlatsboard-panel">
                 <table width="100%"><tr><td>
                   Coverage:
                 </td><td align="right">
