@@ -13,6 +13,10 @@
 
 (function () {
 
+  // The logic to parse what input parameters the user provided
+  // lives in loadConfig()
+
+
   // Constants
 
   var realBackgroundColor = "#272b30";
@@ -34,17 +38,37 @@
   var binary_colors_labels = ['green', 'red'];
 
 
-  var initialConditions1 : '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
-  var initialConditions2 : '[{"23":[30]},{"22":[32]},{"21":[29,30,33,34,35]}]',
-
-
-
-
+  // Used by default
 
   var GOL = {
 
+    gameApiResult: {
+      id: '0000-0000-0000',
+      team1Name: 'Green',
+      team1Color: '#9fe2bf',
+      team2Name: 'Red',
+      team2Color: '#ff1717',
+      map: {
+        id: 1,
+        mapName: 'Main Map',
+        mapZone1Name: 'Zone 1',
+        mapZone2Name: 'Zone 2',
+        mapZone3Name: 'Zone 3',
+        mapZone4Name: 'Zone 4',
+        initialConditions1: '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
+        initialConditions2: '[{"23":[30]},{"22":[32]},{"21":[29,30,33,34,35]}]',
+        columns: 120,
+        rows: 100,
+        cellSize: 7
+      }
+    },
+
+    teamNames: [],
+    teamColors: [],
+
     columns : 0,
     rows : 0,
+    cellSize: 0,
   
     waitTime: 0,
     generation : 0,
@@ -77,8 +101,9 @@
     },
 
     // Initial state
-    initialState1 : initialConditions1,
-    initialState2 : initialConditions2,
+    // Set in loadConfig()
+    initialState1 : null,
+    initialState2 : null,
 
     // Trail state
     trail : {
@@ -97,18 +122,20 @@
         },
         {
           color : '' // Special case: 0px grid
-        }
-      ]
+        },
+      ],
     },
 
 
     // Zoom level
     //
-    // Note - the zoom level is set by a parameter in the URL
+    // columns/rows/cellSize are either set by the map (game mode)
+    // or set by the user via the schemes (sandbox mode)
     zoom : {
       current : 0,
       schedule : false,
 
+      // Only used in sandbox mode
       schemes : [
         {
           columns : 120,
@@ -119,24 +146,32 @@
           columns : 450,
           rows : 216,
           cellSize : 1
-        }
+        },
       ],
-
     },
 
 
     // Cell colors
+    //
+    // dead/trail colors always the same
+    // alive color sets are either set by the game (game mode)
+    // or set by the user via the schemes (sandbox mode)
     colors : {
       current : 0,
       schedule : false,
+      dead: realBackgroundColor,
+      trail: grays,
+      alive: null,
 
+      // Only used in sandbox mode
       schemes : [
         {
-          dead : realBackgroundColor,
-          trail : grays,
-          alive : binary_colors
+          alive: null
         },
-      ]
+        {
+          alive: null
+        }
+      ],
     },
 
 
@@ -164,29 +199,64 @@
     loadConfig : function() {
       var grid, zoom;
 
+      // Check if user provided gameId
+      this.gameId = this.helpers.getUrlParameter('gameId');
+      if (this.gameId != null) {
+
+        // If they did, we get the game endpoint
+        // and put it in this.gameApiResult
+        this.initialState1 = this.gameApiResult['map']['initialConditions1'];
+        this.initialState2 = this.gameApiResult['map']['initialConditions2'];
+
+        // Team names and colors
+        this.teamNames = [this.gameApiResult['team1Name'], this.gameApiResult['team2Name']];
+        this.teamColors = [this.gameApiResult['team1Color'], this.gameApiResult['team2Color']];
+        this.colors.alive = this.teamColors;
+
+        // Zoom info from map
+        this.columns = this.gameApiResult['map']['columns']; 
+        this.rows = this.gameApiResult['map']['rows'];
+        this.cellSize = this.gameApiResult['map']['cellSize'];
+
+      } else {
+
+        // If they did not, we load the default
+        this.initialState1 = this.gameApiResult['map']['initialConditions1'];
+        this.initialState2 = this.gameApiResult['map']['initialConditions2'];
+
+        // Team names and colors
+        this.teamNames = [this.gameApiResult.team1Name, this.gameApiResult.team2Name];
+        this.teamColors = [this.gameApiResult.team1Color, this.gameApiResult.team2Color];
+        this.colors.alive = this.teamColors;
+
+        // Parse zoom options and pick out scheme
+        // Initial zoom config
+        zoom = parseInt(this.helpers.getUrlParameter('zoom'), 10);
+        if (isNaN(zoom) || zoom < 1 || zoom > GOL.zoom.schemes.length) {
+          zoom = 1;
+        }
+        this.zoom.current = zoom - 1;
+        this.columns = this.zoom.schemes[this.zoom.current].columns;
+        this.rows = this.zoom.schemes[this.zoom.current].rows;
+        this.cellSize = this.zoom.schemes[this.zoom.current].cellSize;
+
+        // Parse color options and pick out scheme
+
+      }
+
+      // Initial grid config
+      grid = parseInt(this.helpers.getUrlParameter('grid'), 10);
+      if (isNaN(grid) || grid < 1 || grid > this.grid.schemes.length) {
+        grid = 1;
+      }
+      this.grid.current = grid - 1;
+
       // Add ?autoplay=1 to the end of the URL to enable autoplay
       this.autoplay = this.helpers.getUrlParameter('autoplay') === '1' ? true : this.autoplay;
       
       // Add ?trail=1 to the end of the URL to show trails
       this.trail.current = this.helpers.getUrlParameter('trail') === '1' ? true : this.trail.current;
 
-      // Initial grid config
-      grid = parseInt(this.helpers.getUrlParameter('grid'), 10);
-      if (isNaN(grid) || grid < 1 || grid > GOL.grid.schemes.length) {
-        grid = 1;
-      }
-
-      // Initial zoom config
-      zoom = parseInt(this.helpers.getUrlParameter('zoom'), 10);
-      if (isNaN(zoom) || zoom < 1 || zoom > GOL.zoom.schemes.length) {
-        zoom = 1;
-      }
-
-      this.grid.current = grid - 1;
-      this.zoom.current = zoom - 1;
-
-      this.rows = this.zoom.schemes[this.zoom.current].rows;
-      this.columns = this.zoom.schemes[this.zoom.current].columns;
     },
 
 
@@ -621,7 +691,7 @@
         this.canvas = document.getElementById('canvas');
         this.context = this.canvas.getContext('2d');
 
-        this.cellSize = GOL.zoom.schemes[GOL.zoom.current].cellSize;
+        this.cellSize = GOL.cellSize;
         this.cellSpace = 1;
 
         GOL.helpers.registerEvent(this.canvas, 'mousedown', GOL.handlers.canvasMouseDown, false);
@@ -691,7 +761,7 @@
        * setNoGridOn
        */
       setNoGridOn : function() {
-        this.cellSize = GOL.zoom.schemes[GOL.zoom.current].cellSize + 1;
+        this.cellSize = GOL.cellSize + 1;
         this.cellSpace = 0;
       },
 
@@ -700,7 +770,7 @@
        * setNoGridOff
        */
       setNoGridOff : function() {
-        this.cellSize = GOL.zoom.schemes[GOL.zoom.current].cellSize;
+        this.cellSize = GOL.cellSize;
         this.cellSpace = 1;
       },
 
@@ -714,13 +784,13 @@
         if (alive) {
 
           // color by... color
-          this.context.fillStyle = GOL.colors.schemes[GOL.colors.current].alive[GOL.listLife.getCellColor(i, j) - 1];
+          this.context.fillStyle = GOL.colors.alive[GOL.listLife.getCellColor(i, j) - 1];
 
         } else {
           if (GOL.trail.current && this.age[i][j] < 0) {
-            this.context.fillStyle = GOL.colors.schemes[GOL.colors.current].trail[(this.age[i][j] * -1) % GOL.colors.schemes[GOL.colors.current].trail.length];
+            this.context.fillStyle = GOL.colors.trail[(this.age[i][j] * -1) % GOL.colors.trail.length];
           } else {
-            this.context.fillStyle = GOL.colors.schemes[GOL.colors.current].dead;
+            this.context.fillStyle = GOL.colors.dead;
           }
         }
 
@@ -810,16 +880,14 @@
       getLiveCounts : function() {
         var i, j;
 
-        var z = GOL.zoom.schemes[GOL.zoom.current];
-
         var state = GOL.listLife.actualState;
         var liveCells = 0;
         var coverageCells = 0;
         for (i = 0; i < state.length; i++) {
           coverageCells += (state[i].length - 1)
-          if ((state[i][0] >= 0) && (state[i][0]) < z.rows) {
+          if ((state[i][0] >= 0) && (state[i][0]) < GOL.rows) {
             for (j = 1; j < state[i].length; j++) {
-              if ((state[i][j] > 0) && (state[i][j] < z.columns)) {
+              if ((state[i][j] > 0) && (state[i][j] < GOL.columns)) {
                 liveCells++;
               }
             }
@@ -829,9 +897,9 @@
         var state1 = GOL.listLife.actualState1;
         var liveCells1 = 0;
         for (i = 0; i < state1.length; i++) {
-          if ((state1[i][0] >= 0) && (state1[i][0]) < z.rows) {
+          if ((state1[i][0] >= 0) && (state1[i][0]) < GOL.rows) {
             for (j = 1; j < state1[i].length; j++) {
-              if ((state1[i][j] > 0) && (state1[i][j] < z.columns)) {
+              if ((state1[i][j] > 0) && (state1[i][j] < GOL.columns)) {
                 liveCells1++;
               }
             }
@@ -841,9 +909,9 @@
         var state2 = GOL.listLife.actualState2;
         var liveCells2 = 0;
         for (i = 0; i < state2.length; i++) {
-          if ((state2[i][0] >= 0) && (state2[i][0]) < z.rows) {
+          if ((state2[i][0] >= 0) && (state2[i][0]) < GOL.rows) {
             for (j = 1; j < state2[i].length; j++) {
-              if ((state2[i][j] > 0) && (state2[i][j] < z.columns)) {
+              if ((state2[i][j] > 0) && (state2[i][j] < GOL.columns)) {
                 liveCells2++;
               }
             }
@@ -856,10 +924,9 @@
         } else {
           victoryPct = liveCells2/(1.0*liveCells1 + liveCells2);
         }
-        victoryPct = (victoryPct * 100).toFixed(2);
+        victoryPct = (victoryPct * 100).toFixed(1);
 
-        var z = GOL.zoom.schemes[GOL.zoom.current];
-        var totalArea = z.columns * z.rows;
+        var totalArea = GOL.columns * GOL.rows;
         var coverage = coverageCells/(1.0*totalArea);
         coverage = (coverage * 100).toFixed(2);
 
@@ -1514,7 +1581,7 @@
       mousePosition : function (e) {
         // http://www.malleus.de/FAQ/getImgMousePos.html
         // http://www.quirksmode.org/js/events_properties.html#position
-        var event, x, y, domObject, posx = 0, posy = 0, top = 0, left = 0, cellSize = GOL.zoom.schemes[GOL.zoom.current].cellSize + 1;
+        var event, x, y, domObject, posx = 0, posy = 0, top = 0, left = 0, cellSize = GOL.cellSize + 1;
 
         event = e;
         if (!event) {
