@@ -8,9 +8,12 @@
  * Modifications by charles reid
  * 12 February 2018
  * 11 July 2019
+ * 26 October 2020
  */
 
 (function () {
+
+  // Constants
 
   var realBackgroundColor = "#272b30";
   var tileBackgroundColor = realBackgroundColor;
@@ -29,6 +32,14 @@
   // seafoam green/candy red
   var binary_colors = ["#9fe2bf", "#ff1717"];
   var binary_colors_labels = ['green', 'red'];
+
+
+  var initialConditions1 : '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
+  var initialConditions2 : '[{"23":[30]},{"22":[32]},{"21":[29,30,33,34,35]}]',
+
+
+
+
 
   var GOL = {
 
@@ -66,9 +77,8 @@
     },
 
     // Initial state
-    // cmr - this is where we set initialState1 and initialState2
-    initialState1 : '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
-    initialState2 : '[{"23":[30]},{"22":[32]},{"21":[29,30,33,34,35]}]',
+    initialState1 : initialConditions1,
+    initialState2 : initialConditions2,
 
     // Trail state
     trail : {
@@ -356,7 +366,6 @@
       // Layout
       this.helpers.registerEvent(document.getElementById('buttonTrail'), 'click', this.handlers.buttons.trail, false);
       this.helpers.registerEvent(document.getElementById('buttonGrid'), 'click', this.handlers.buttons.grid, false);
-      this.helpers.registerEvent(document.getElementById('buttonColors'), 'click', this.handlers.buttons.colors, false);
     },
 
 
