@@ -24,20 +24,14 @@
   var gridStrokeColor1    = "#3a3a3a";
   var grays = ["#3a3a3a", "#404040"];
 
-
-
   var GOL = {
 
-    gameApiResult: {
+    defaultGameApiResult: {
       id: '0000-0000-0000',
       team1Name: 'Purple',
-      //team1Color: '#9fe2bf',
-      team1Color: '#521168',
-      team1SecondaryColor: '#9963AB',
+      team1Color: '#9963AB',
       team2Name: 'Orange',
-      //team2Color: '#ff1717',
-      team2Color: '#bf5315',
-      team2SecondaryColor: '#D19673',
+      team2Color: '#E86215',
       map: {
         id: 1,
         mapName: 'Main Map',
@@ -55,7 +49,6 @@
 
     teamNames: [],
     teamColors: [],
-    teamSecondaryColors: [],
 
     columns : 0,
     rows : 0,
@@ -194,55 +187,118 @@
 
     /**
      * Load config from URL
+     *
+     * This function is a bit messy, so here's the rundown:
+     * - if user provides gameId param, switch to game simulation mode
+     *   - get team/map data from games api endpoint
+     *   - populate various fields from games api result
+     * - if user provides no gameId param, switch to sandbox mode
+     *   - if user provides map param, load a map from the maps api endpoint
+     *   - if user provides random param, set up state1/state2 to be randomly generated fields
+     *   - if user provides s1 or s2 params, set state1/state2 initial conditions
+     *   - if user provides nothing, set default state1/state2 params on default map
      */
     loadConfig : function() {
       var grid, zoom;
 
-      // Check if user provided gameId
+      // User providing gameId means we go to game mode
       this.gameId = this.helpers.getUrlParameter('gameId');
       if (this.gameId != null) {
 
-        // If they did, we get the game endpoint
-        // and put it in this.gameApiResult
-        this.initialState1 = this.gameApiResult['map']['initialConditions1'];
-        this.initialState2 = this.gameApiResult['map']['initialConditions2'];
+        ///////////////////
+        // Game simulation mode
+        this.game_mode = true;
+        this.sandbox_mode = false;
+
+        // Get game endpoint and put it in this.gameApiResult
+        // this.gameApiResult = json;
+        this.gameApiResult = this.defaultGameApiResult;
 
         // Team names and colors
         this.teamNames = [this.gameApiResult.team1Name, this.gameApiResult.team2Name];
         this.teamColors = [this.gameApiResult.team1Color, this.gameApiResult.team2Color];
-        this.teamSecondaryColors = [this.gameApiResult.team1SecondaryColor, this.gameApiResult.team2SecondaryColor];
         this.colors.alive = this.teamColors;
 
-        // Zoom info from map
-        this.columns = this.gameApiResult['map']['columns']; 
-        this.rows = this.gameApiResult['map']['rows'];
-        this.cellSize = this.gameApiResult['map']['cellSize'];
+        // Map data
+        var thisMap = this.gameApiResult.map;
+        // Initial conditions
+        this.initialState1 = thisMap.initialConditions1;
+        this.initialState2 = thisMap.initialConditions2;
+        // Zoom info
+        this.columns = thisMap.columns;
+        this.rows = thisMap.rows;
+        this.cellSize = thisMap.cellSize;
 
       } else {
 
-        // If they did not, we load the default
-        this.initialState1 = this.gameApiResult['map']['initialConditions1'];
-        this.initialState2 = this.gameApiResult['map']['initialConditions2'];
+        // User NOT providing gameId means we go to sandbox mode
+        this.mapId = this.helpers.getUrlParameter('mapId');
+        this.random = parseInt(this.helpers.getUrlParameter('random'), 10);
+        this.s1user = this.helpers.getUrlParameter('s1');
+        this.s2user = this.helpers.getUrlParameter('s2');
+
+        ///////////////////
+        // Sandbox mode
+        this.game_mode = false;
+        this.sandbox_mode = true;
 
         // Team names and colors
-        this.teamNames = [this.gameApiResult.team1Name, this.gameApiResult.team2Name];
-        this.teamColors = [this.gameApiResult.team1Color, this.gameApiResult.team2Color];
-        this.teamSecondaryColors = [this.gameApiResult.team1SecondaryColor, this.gameApiResult.team2SecondaryColor];
+        this.teamNames = [this.defaultGameApiResult.team1Name, this.defaultGameApiResult.team2Name];
+        this.teamColors = [this.defaultGameApiResult.team1Color, this.defaultGameApiResult.team2Color];
         this.colors.alive = this.teamColors;
 
-        // Parse zoom options and pick out scheme
-        // Initial zoom config
-        zoom = parseInt(this.helpers.getUrlParameter('zoom'), 10);
-        if (isNaN(zoom) || zoom < 1 || zoom > GOL.zoom.schemes.length) {
-          zoom = 1;
+        if (this.mapId != null) {
+          // Use user-specified map, map's zoom
+          // Get map endpoint and put it in this.mapApiResult
+          // var thisMap = json
+          // Initial conditions
+          this.initialState1 = thisMap.initialConditions1;
+          this.initialState2 = thisMap.initialConditions2;
+          // Zoom info
+          this.columns = thisMap.columns;
+          this.rows = thisMap.rows;
+          this.cellSize = thisMap.cellSize;
+
+        } else {
+          if (this.random == 1) {
+            // Use random map, default zoom
+            // Initial conditions
+            this.initialState1 = 'random';
+            this.initialState2 = 'random';
+
+          } else if ((this.s1user == null) && (this.s2user == null)) {
+            // User provided no s1 or s2,
+            // so use default map, default zoom
+            // Initial conditions
+            this.initialState1 = this.defaultGameApiResult.map.initialConditions1;
+            this.initialState2 = this.defaultGameApiResult.map.initialConditions2;
+
+          } else {
+            // User provided s1 or s2, use default map, use default zoom
+            // Initial conditions
+            if (this.s1user != null) {
+              this.initialState1 = this.s1user;
+            } else {
+              this.initialState1 = [{}];
+            }
+            if (this.s2user != null) {
+              this.initialState2 = this.s2user;
+            } else {
+              this.initialState2 = [{}];
+            }
+          }
+
+          // Parse zoom options and pick out scheme
+          // Initial zoom config
+          zoom = parseInt(this.helpers.getUrlParameter('zoom'), 10);
+          if (isNaN(zoom) || zoom < 1 || zoom > GOL.zoom.schemes.length) {
+            zoom = 1;
+          }
+          this.zoom.current = zoom - 1;
+          this.columns = this.zoom.schemes[this.zoom.current].columns;
+          this.rows = this.zoom.schemes[this.zoom.current].rows;
+          this.cellSize = this.zoom.schemes[this.zoom.current].cellSize;
         }
-        this.zoom.current = zoom - 1;
-        this.columns = this.zoom.schemes[this.zoom.current].columns;
-        this.rows = this.zoom.schemes[this.zoom.current].rows;
-        this.cellSize = this.zoom.schemes[this.zoom.current].cellSize;
-
-        // Parse color options and pick out scheme
-
       }
 
       // Initial grid config
@@ -268,10 +324,8 @@
     loadState : function() {
       var i, j, y;
       var state1, state2;
-      var s1 = this.helpers.getUrlParameter('s1');
-      var s2 = this.helpers.getUrlParameter('s2');
 
-      // each stateN is a 3-element array
+      // each stateN is an array of arrays (listlife)
       // stateN[0] is a dictionary:
       //    39: [60]
       // stateN[1] is a dictionary:
@@ -280,14 +334,11 @@
       //    41: [59, 60, 63, 64, 65]
 
       // state 1 parameter
-      if ( s1 === 'random') {
-        this.randomState();
+      //if (true) {
+      if (this.initialState1 === 'random') {
+        this.randomState(1);
       } else {
-        if (s1 == undefined) {
-          s1 = this.initialState1;
-        }
-
-        state1 = jsonParse(decodeURI(s1));
+        state1 = jsonParse(decodeURI(this.initialState1));
         var irow, icol, y;
         for (irow = 0; irow < state1.length; irow++) {
           for (y in state1[irow]) {
@@ -302,14 +353,11 @@
       }
 
       // state 2 parameter
-      if ( s1 === 'random') {
-        this.randomState();
+      //if (true) {
+      if (this.initialState2 === 'random') {
+        this.randomState(2);
       } else {
-        if (s2 == undefined) {
-          s2 = this.initialState2;
-        }
-
-        state2 = jsonParse(decodeURI(s2));
+        state2 = jsonParse(decodeURI(this.initialState2));
         var irow, icol, y;
         for (irow = 0; irow < state2.length; irow++) {
           for (y in state2[irow]) {
@@ -328,31 +376,36 @@
     /**
      * Create a random pattern
      */
-    randomState : function() {
+    randomState : function(color) {
       // original pct was 12%, for binary we split 5%
       var i, liveCells = (this.rows * this.columns) * 0.05;
 
-      // Color 1
-      for (i = 0; i < liveCells; i++) {
-        var xx = this.helpers.random(0, this.columns - 1);
-        var yy = this.helpers.random(0, this.rows - 1);
-        while (this.listLife.isAlive(xx, yy)) {
-            xx = this.helpers.random(0, this.columns - 1);
-            yy = this.helpers.random(0, this.rows - 1);
+      if (color===0 || color===1) {
+        // Color 1
+        for (i = 0; i < liveCells; i++) {
+          var xx = this.helpers.random(0, this.columns - 1);
+          var yy = this.helpers.random(0, this.rows - 1);
+          while (this.listLife.isAlive(xx, yy)) {
+              xx = this.helpers.random(0, this.columns - 1);
+              yy = this.helpers.random(0, this.rows - 1);
+          }
+          this.listLife.addCell(xx, yy, this.listLife.actualState);
+          this.listLife.addCell(xx, yy, this.listLife.actualState1);
         }
-        this.listLife.addCell(xx, yy, this.listLife.actualState);
-        this.listLife.addCell(xx, yy, this.listLife.actualState1);
       }
-      // Color 2
-      for (i = 0; i < liveCells; i++) {
-        var xx = this.helpers.random(0, this.columns - 1);
-        var yy = this.helpers.random(0, this.rows - 1);
-        while (this.listLife.isAlive(xx, yy)) {
-            xx = this.helpers.random(0, this.columns - 1);
-            yy = this.helpers.random(0, this.rows - 1);
+
+      if (color===0 || color===2) {
+        // Color 2
+        for (i = 0; i < liveCells; i++) {
+          var xx = this.helpers.random(0, this.columns - 1);
+          var yy = this.helpers.random(0, this.rows - 1);
+          while (this.listLife.isAlive(xx, yy)) {
+              xx = this.helpers.random(0, this.columns - 1);
+              yy = this.helpers.random(0, this.rows - 1);
+          }
+          this.listLife.addCell(xx, yy, this.listLife.actualState);
+          this.listLife.addCell(xx, yy, this.listLife.actualState2);
         }
-        this.listLife.addCell(xx, yy, this.listLife.actualState);
-        this.listLife.addCell(xx, yy, this.listLife.actualState2);
       }
 
       //this.listLife.nextGeneration();
@@ -391,12 +444,10 @@
       for (i = 0; i < this.element.team1color.length; i++) {
         e = this.element.team1color[i];
         e.style.color = this.teamColors[0];
-        e.style.background = this.teamSecondaryColors[0];
       }
       for (i = 0; i < this.element.team2color.length; i++) {
         e = this.element.team2color[i];
         e.style.color = this.teamColors[1];
-        e.style.background = this.teamSecondaryColors[1];
       }
       for (i = 0; i < this.element.team1name.length; i++) {
         e = this.element.team1name[i];
