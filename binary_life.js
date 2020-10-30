@@ -1079,7 +1079,6 @@
 
 
       nextGeneration : function() {
-
         var x, y, i, j, m, n, key, t1, t2;
         var alive = 0, alive1 = 0, alive2 = 0;
         var deadNeighbors;
