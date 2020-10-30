@@ -1015,10 +1015,9 @@
         var liveCells = 0;
         var coverageCells = 0;
         for (i = 0; i < state.length; i++) {
-          coverageCells += (state[i].length - 1)
-          if ((state[i][0] >= 0) && (state[i][0]) < GOL.rows) {
+          if ((state[i][0] >= 0) && (state[i][0] < GOL.rows)) {
             for (j = 1; j < state[i].length; j++) {
-              if ((state[i][j] > 0) && (state[i][j] < GOL.columns)) {
+              if ((state[i][j] >= 0) && (state[i][j] < GOL.columns)) {
                 liveCells++;
               }
             }
@@ -1028,9 +1027,9 @@
         var state1 = GOL.listLife.actualState1;
         var liveCells1 = 0;
         for (i = 0; i < state1.length; i++) {
-          if ((state1[i][0] >= 0) && (state1[i][0]) < GOL.rows) {
+          if ((state1[i][0] >= 0) && (state1[i][0] < GOL.rows)) {
             for (j = 1; j < state1[i].length; j++) {
-              if ((state1[i][j] > 0) && (state1[i][j] < GOL.columns)) {
+              if ((state1[i][j] >= 0) && (state1[i][j] < GOL.columns)) {
                 liveCells1++;
               }
             }
@@ -1040,9 +1039,9 @@
         var state2 = GOL.listLife.actualState2;
         var liveCells2 = 0;
         for (i = 0; i < state2.length; i++) {
-          if ((state2[i][0] >= 0) && (state2[i][0]) < GOL.rows) {
+          if ((state2[i][0] >= 0) && (state2[i][0] < GOL.rows)) {
             for (j = 1; j < state2[i].length; j++) {
-              if ((state2[i][j] > 0) && (state2[i][j] < GOL.columns)) {
+              if ((state2[i][j] >= 0) && (state2[i][j] < GOL.columns)) {
                 liveCells2++;
               }
             }
@@ -1058,7 +1057,7 @@
         victoryPct = (victoryPct * 100).toFixed(1);
 
         var totalArea = GOL.columns * GOL.rows;
-        var coverage = coverageCells/(1.0*totalArea);
+        var coverage = liveCells/(1.0*totalArea);
         coverage = (coverage * 100).toFixed(2);
 
         var territory1 = liveCells1/(1.0*totalArea);
@@ -1139,7 +1138,7 @@
 
         // Process dead neighbors
         for (key in allDeadNeighbors) {
-          if (allDeadNeighbors[key] === 3) { // Add new Cell
+          if (allDeadNeighbors[key] === 3) {
             // This cell is dead, but has enough neighbors
             // that are alive that it will make new life.
             key = key.split(',');
