@@ -53,7 +53,7 @@
     columns : 0,
     rows : 0,
     cellSize: 0,
-  
+
     waitTime: 0,
     generation : 0,
 
@@ -158,10 +158,12 @@
       // Only used in sandbox mode
       schemes : [
         {
-          alive: null
+          alive: ['#9963AB', '#E86215'],
+          alive_labels: ['Purple', 'Orange'],
         },
         {
-          alive: null
+          alive: ["#9FE2BF", "#FF1717"],
+          alive_labels: ['Green', 'Red'],
         }
       ],
     },
@@ -216,8 +218,7 @@
 
         // Team names and colors
         this.teamNames = [this.gameApiResult.team1Name, this.gameApiResult.team2Name];
-        this.teamColors = [this.gameApiResult.team1Color, this.gameApiResult.team2Color];
-        this.colors.alive = this.teamColors;
+        this.colors.alive = [this.gameApiResult.team1Color, this.gameApiResult.team2Color];
 
         // Map data
         var thisMap = this.gameApiResult.map;
@@ -244,8 +245,7 @@
 
         // Team names and colors
         this.teamNames = [this.defaultGameApiResult.team1Name, this.defaultGameApiResult.team2Name];
-        this.teamColors = [this.defaultGameApiResult.team1Color, this.defaultGameApiResult.team2Color];
-        this.colors.alive = this.teamColors;
+        this.colors.alive = [this.defaultGameApiResult.team1Color, this.defaultGameApiResult.team2Color];
 
         if (this.mapId != null) {
           // Use user-specified map, map's zoom
@@ -267,15 +267,16 @@
             this.initialState2 = 'random';
 
           } else if ((this.s1user == null) && (this.s2user == null)) {
-            // User provided no s1 or s2,
-            // so use default map, default zoom
-            // Initial conditions
+            // User provided no s1 or s2
+            //
+            // Revisit what to do here.
+            // Explicitly define a default map dict separately.
             this.initialState1 = this.defaultGameApiResult.map.initialConditions1;
             this.initialState2 = this.defaultGameApiResult.map.initialConditions2;
 
           } else {
-            // User provided s1 or s2, use default map, use default zoom
-            // Initial conditions
+            // User provided s1 or s2
+            // If not both, set to [{}] to make program properly skip it
             if (this.s1user != null) {
               this.initialState1 = this.s1user;
             } else {
@@ -286,10 +287,9 @@
             } else {
               this.initialState2 = [{}];
             }
-          }
+          } // end mapId if/else
 
           // Parse zoom options and pick out scheme
-          // Initial zoom config
           zoom = parseInt(this.helpers.getUrlParameter('zoom'), 10);
           if (isNaN(zoom) || zoom < 1 || zoom > GOL.zoom.schemes.length) {
             zoom = 1;
@@ -298,6 +298,16 @@
           this.columns = this.zoom.schemes[this.zoom.current].columns;
           this.rows = this.zoom.schemes[this.zoom.current].rows;
           this.cellSize = this.zoom.schemes[this.zoom.current].cellSize;
+
+          // Parse color options and pick out scheme
+          colorpal = parseInt(this.helpers.getUrlParameter('color'), 10);
+          if (isNaN(colorpal) || colorpal < 1 || colorpal > GOL.colors.schemes.length) {
+            colorpal = 1;
+          }
+          this.colors.current = colorpal - 1;
+          this.colors.alive = this.colors.schemes[this.colors.current].alive;
+          // Replace team names with color labels
+          this.teamNames = this.colors.schemes[this.colors.current].alive_labels;
         }
       }
 
@@ -310,7 +320,7 @@
 
       // Add ?autoplay=1 to the end of the URL to enable autoplay
       this.autoplay = this.helpers.getUrlParameter('autoplay') === '1' ? true : this.autoplay;
-      
+
       // Add ?trail=1 to the end of the URL to show trails
       this.trail.current = this.helpers.getUrlParameter('trail') === '1' ? true : this.trail.current;
 
@@ -430,8 +440,13 @@
 
       this.element.generation.innerHTML = '0';
 
-      liveCounts = this.getCounts();
+      if (this.game_mode===true) {
+        // Hide the clear button in game mode
+        this.element.clearButton.remove();
+        this.element.colorButton.remove();
+      }
 
+      liveCounts = this.getCounts();
       this.element.livecells.innerHTML  = liveCounts[0];
       this.element.livecells1.innerHTML = liveCounts[1];
       this.element.livecells2.innerHTML = liveCounts[2];
@@ -440,14 +455,27 @@
       this.element.territory1.innerHTML = liveCounts[5] + "%";
       this.element.territory2.innerHTML = liveCounts[6] + "%";
 
+      // Color any text and populate any team names
+      this.updateTeamNamesColors();
+
+      this.canvas.clearWorld(); // Reset GUI
+      this.canvas.drawWorld(); // Draw State
+
+      if (this.autoplay) { // Next Flow
+        this.autoplay = false;
+        this.handlers.buttons.run();
+      }
+    },
+
+    updateTeamNamesColors : function() {
       var i, e;
       for (i = 0; i < this.element.team1color.length; i++) {
         e = this.element.team1color[i];
-        e.style.color = this.teamColors[0];
+        e.style.color = this.colors.alive[0];
       }
       for (i = 0; i < this.element.team2color.length; i++) {
         e = this.element.team2color[i];
-        e.style.color = this.teamColors[1];
+        e.style.color = this.colors.alive[1];
       }
       for (i = 0; i < this.element.team1name.length; i++) {
         e = this.element.team1name[i];
@@ -456,14 +484,6 @@
       for (i = 0; i < this.element.team2name.length; i++) {
         e = this.element.team2name[i];
         e.innerHTML = this.teamNames[1];
-      }
-
-      this.canvas.clearWorld(); // Reset GUI
-      this.canvas.drawWorld(); // Draw State
-
-      if (this.autoplay) { // Next Flow
-        this.autoplay = false;
-        this.handlers.buttons.run();
       }
     },
 
@@ -489,8 +509,11 @@
 
       this.element.team1color = document.getElementsByClassName("team1color");
       this.element.team1name  = document.getElementsByClassName("team1name");
-      this.element.team2color = document.getElementsByClassName("team2color"); 
-      this.element.team2name  = document.getElementsByClassName("team2name");  
+      this.element.team2color = document.getElementsByClassName("team2color");
+      this.element.team2name  = document.getElementsByClassName("team2name");
+
+      this.element.clearButton = document.getElementById('buttonClear');
+      this.element.colorButton = document.getElementById('buttonColors');
 
       this.element.messages.layout = document.getElementById('layoutMessages');
     },
@@ -513,6 +536,7 @@
       // Layout
       this.helpers.registerEvent(document.getElementById('buttonTrail'), 'click', this.handlers.buttons.trail, false);
       this.helpers.registerEvent(document.getElementById('buttonGrid'), 'click', this.handlers.buttons.grid, false);
+      this.helpers.registerEvent(document.getElementById('buttonColors'), 'click', this.handlers.buttons.colorcycle, false);
     },
 
 
@@ -525,7 +549,7 @@
       var algorithmTime, guiTime;
 
       // Algorithm run
-    
+
       algorithmTime = (new Date());
 
       liveCounts = GOL.listLife.nextGeneration();
@@ -613,21 +637,27 @@
        * When user clicks down, set mouse down state
        * and change change cell alive/dead state at
        * the current mouse location.
+       * (sandbox mode only)
        */
       canvasMouseDown : function(event) {
-        var position = GOL.helpers.mousePosition(event);
-        GOL.canvas.switchCell(position[0], position[1]);
-        GOL.handlers.lastX = position[0];
-        GOL.handlers.lastY = position[1];
-        GOL.handlers.mouseDown = true;
+        if (this.sandbox_mode===true) {
+          var position = GOL.helpers.mousePosition(event);
+          GOL.canvas.switchCell(position[0], position[1]);
+          GOL.handlers.lastX = position[0];
+          GOL.handlers.lastY = position[1];
+          GOL.handlers.mouseDown = true;
+        }
       },
 
 
       /**
        * Handle user mouse up instance.
+       * (sandbox mode only)
        */
       canvasMouseUp : function() {
-        GOL.handlers.mouseDown = false;
+        if (this.sandbox_mode===true) {
+          GOL.handlers.mouseDown = false;
+        }
       },
 
 
@@ -635,14 +665,17 @@
        * If we have captured a mouse down event,
        * track where the mouse is going and change
        * cell alive/dead state at mouse location.
+       * (sandbox mode only)
        */
       canvasMouseMove : function(event) {
-        if (GOL.handlers.mouseDown) {
-          var position = GOL.helpers.mousePosition(event);
-          if ((position[0] !== GOL.handlers.lastX) || (position[1] !== GOL.handlers.lastY)) {
-            GOL.canvas.switchCell(position[0], position[1]);
-            GOL.handlers.lastX = position[0];
-            GOL.handlers.lastY = position[1];
+        if (this.sandbox_mode===true) {
+          if (GOL.handlers.mouseDown) {
+            var position = GOL.helpers.mousePosition(event);
+            if ((position[0] !== GOL.handlers.lastX) || (position[1] !== GOL.handlers.lastY)) {
+              GOL.canvas.switchCell(position[0], position[1]);
+              GOL.handlers.lastX = position[0];
+              GOL.handlers.lastY = position[1];
+            }
           }
         }
       },
@@ -656,9 +689,12 @@
         if (!event) {
           event = window.event;
         }
-      
+
         if (event.keyCode === 67) { // Key: C
-          GOL.handlers.buttons.clear();
+          // User can only clear the board in sandbox mode
+          if (this.sandbox_mode===true) {
+            GOL.handlers.buttons.clear();
+          }
         } else if (event.keyCode === 82 ) { // Key: R
           GOL.handlers.buttons.run();
         } else if (event.keyCode === 83 ) { // Key: S
@@ -668,7 +704,7 @@
 
 
       buttons : {
-      
+
         /**
          * Button Handler - Run
          */
@@ -703,14 +739,16 @@
          * Button Handler - Clear World
          */
         clear : function() {
-          if (GOL.running) {
-            GOL.clear.schedule = true;
-            GOL.running = false;
-            $("#buttonRun").text("Run");
-            document.getElementById('buttonRun').classList.remove("btn-danger");
-            document.getElementById('buttonRun').classList.add("btn-success");
-          } else {
-            GOL.cleanUp();
+          if (this.sandbox_mode===true) {
+            if (GOL.running) {
+              GOL.clear.schedule = true;
+              GOL.running = false;
+              $("#buttonRun").text("Run");
+              document.getElementById('buttonRun').classList.remove("btn-danger");
+              document.getElementById('buttonRun').classList.add("btn-success");
+            } else {
+              GOL.cleanUp();
+            }
           }
         },
 
@@ -728,13 +766,26 @@
           }
         },
 
+        /**
+         * Cycle through the color schemes
+         */
+        colorcycle : function() {
+          GOL.colors.current = (GOL.colors.current + 1) % GOL.colors.schemes.length;
+          GOL.colors.alive = GOL.colors.schemes[GOL.colors.current].alive;
+          GOL.teamNames = GOL.colors.schemes[GOL.colors.current].alive_labels;
+          GOL.updateTeamNamesColors();
+          if (GOL.running) {
+            GOL.colors.schedule = true; // Delay redraw
+          } else {
+            GOL.canvas.drawWorld(); // Force complete redraw
+          }
+        },
 
         /**
-         * Draw the grid
+         * Show/hide the grid
          */
         grid : function() {
           GOL.grid.current = (GOL.grid.current + 1) % GOL.grid.schemes.length;
-          //GOL.element.messages.layout.innerHTML = 'Grid Scheme #' + (GOL.grid.current + 1);
           if (GOL.running) {
             GOL.grid.schedule = true; // Delay redraw
           } else {
@@ -742,8 +793,8 @@
           }
         },
 
-      }
-    
+      },
+
     },
 
 
@@ -771,6 +822,7 @@
         this.cellSize = GOL.cellSize;
         this.cellSpace = 1;
 
+        // register the mousedown/mouseup/mousemove events with function callbacks
         GOL.helpers.registerEvent(this.canvas, 'mousedown', GOL.handlers.canvasMouseDown, false);
         GOL.helpers.registerEvent(document, 'mouseup', GOL.handlers.canvasMouseUp, false);
         GOL.helpers.registerEvent(this.canvas, 'mousemove', GOL.handlers.canvasMouseMove, false);
@@ -857,7 +909,7 @@
        * cmr - this is where we color by color
        */
       drawCell : function (i, j, alive) {
-                
+
         if (alive) {
 
           // color by... color
@@ -872,7 +924,7 @@
         }
 
         this.context.fillRect(this.cellSpace + (this.cellSpace * i) + (this.cellSize * i), this.cellSpace + (this.cellSpace * j) + (this.cellSize * j), this.cellSize, this.cellSize);
-                
+
       },
 
 
@@ -881,21 +933,23 @@
        * cmr - this is only activated when a user clicks on a cell
        */
       switchCell : function(i, j) {
-        if (GOL.listLife.isAlive(i, j)) {
-          if (GOL.listLife.getCellColor(i, j) == 1) {
-            // Swap colors
-            GOL.listLife.removeCell(i, j, GOL.listLife.actualState1);
-            GOL.listLife.addCell(i, j, GOL.listLife.actualState2);
-            this.keepCellAlive(i, j);
+        if (this.sandbox_mode===true) {
+          if (GOL.listLife.isAlive(i, j)) {
+            if (GOL.listLife.getCellColor(i, j) == 1) {
+              // Swap colors
+              GOL.listLife.removeCell(i, j, GOL.listLife.actualState1);
+              GOL.listLife.addCell(i, j, GOL.listLife.actualState2);
+              this.keepCellAlive(i, j);
+            } else {
+              GOL.listLife.removeCell(i, j, GOL.listLife.actualState);
+              GOL.listLife.removeCell(i, j, GOL.listLife.actualState2);
+              this.changeCelltoDead(i, j);
+            }
           } else {
-            GOL.listLife.removeCell(i, j, GOL.listLife.actualState);
-            GOL.listLife.removeCell(i, j, GOL.listLife.actualState2);
-            this.changeCelltoDead(i, j);
+            GOL.listLife.addCell(i, j, GOL.listLife.actualState);
+            GOL.listLife.addCell(i, j, GOL.listLife.actualState1);
+            this.changeCelltoAlive(i, j);
           }
-        } else {
-          GOL.listLife.addCell(i, j, GOL.listLife.actualState);
-          GOL.listLife.addCell(i, j, GOL.listLife.actualState1);
-          this.changeCelltoAlive(i, j);
         }
       },
 
@@ -996,7 +1050,7 @@
         }
 
         var victoryPct;
-        if (liveCells1 > liveCells2) { 
+        if (liveCells1 > liveCells2) {
           victoryPct = liveCells1/(1.0*liveCells1 + liveCells2);
         } else {
           victoryPct = liveCells2/(1.0*liveCells1 + liveCells2);
@@ -1013,7 +1067,7 @@
         territory2 = (territory2 * 100).toFixed(2);
 
         return [
-          liveCells, 
+          liveCells,
           liveCells1,
           liveCells2,
           victoryPct,
@@ -1317,7 +1371,7 @@
                   } else {
                     this.topPointer = k - 1;
                   }
-                                    
+
                   neighbors++;
                   var xx = state[i-1][k];
                   var yy = state[i-1][0];
@@ -1336,7 +1390,7 @@
             }
           }
         }
-        
+
         // Middle
         for (k = 1; k < state[i].length; k++) {
           if (state[i][k] >= (x - 1)) {
@@ -1409,7 +1463,7 @@
 
                 if (state[i+1][k] === (x + 1)) {
                   possibleNeighborsList[7] = undefined;
-                                    
+
                   if (k == 1) {
                     this.bottomPointer = 1;
                   } else {
@@ -1441,7 +1495,7 @@
         } else {
           color = 2;
         }
-        
+
         //return neighbors;
         return {
           neighbors: neighbors,
@@ -1455,7 +1509,7 @@
        */
       isAlive : function(x, y) {
         var i, j;
-      
+
         for (i = 0; i < this.actualState.length; i++) {
           // check that first coordinate in actualState matches
           if (this.actualState[i][0] === y) {
@@ -1469,7 +1523,7 @@
         }
         return false;
       },
-      
+
       /**
        * Get the color of the cell at location (x, y)
        */
@@ -1501,7 +1555,7 @@
        */
       removeCell : function(x, y, state) {
         var i, j;
-      
+
         for (i = 0; i < state.length; i++) {
           if (state[i][0] === y) {
 
@@ -1620,7 +1674,7 @@
       getUrlParameter : function(name) {
         if (this.urlParameters === null) { // Cache miss
           var hash, hashes, i;
-        
+
           this.urlParameters = [];
           hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
 
@@ -1659,7 +1713,7 @@
         if (!event) {
           event = window.event;
         }
-      
+
         if (event.pageX || event.pageY)     {
           posx = event.pageX;
           posy = event.pageY;
