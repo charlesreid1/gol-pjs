@@ -39,27 +39,31 @@ Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_L
                 <h3 class="panel-title">Scoreboard</h3>
             </div>
 
-            <div class="panel-body scoreboard-panel">
+            <div class="panel-body scoreboard-panel" id="scoreboard-panel-livecells1">
 
                 <table width="100%"><tr><td>
                   <span class="team1color team1name"></span> Cells:
                 </td><td align="right">
+                  <b>
                   <span class="team1color" id="livecells1"></span>
+                  </b>
                 </td></tr></table>
 
             </div>
 
-            <div class="panel-body scoreboard-panel">
+            <div class="panel-body scoreboard-panel" id="scoreboard-panel-livecells2">
 
                 <table width="100%"><tr><td>
                   <span class="team2color team2name"></span> Cells:
                 </td><td align="right">
+                  <b>
                   <span class="team2color" id="livecells2"></span>
+                  </b>
                 </td></tr></table>
 
             </div>
 
-            <div class="panel-body scoreboard-panel">
+            <div class="panel-body scoreboard-panel" id="scoreboard-panel-generation">
 
                 <table width="100%"><tr><td>
                   Generation:
@@ -68,6 +72,17 @@ Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_L
                 </td></tr></table>
 
             </div>
+
+            <div class="panel-body scoreboard-panel" id="scoreboard-panel-map">
+
+                <table width="100%"><tr><td>
+                  Map:
+                </td><td align="right">
+                  <span class="label label-brightmono" id="mapname-label"></span>
+                </td></tr></table>
+
+            </div>
+
         </div>
 
     </div>
@@ -83,7 +98,9 @@ Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_L
                 <table width="100%"><tr><td>
                   <span class="team1color team1name"></span> Territory:
                 </td><td align="right">
+                  <b>
                   <span class="team1color" id="territory1"></span>
+                  </b>
                 </td></tr></table>
             </div>
 
@@ -91,7 +108,9 @@ Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_L
                 <table width="100%"><tr><td>
                   <span class="team2color team2name"></span> Territory:
                 </td><td align="right">
+                  <b>
                   <span class="team2color" id="territory2"></span>
+                  </b>
                 </td></tr></table>
             </div>
 
@@ -152,8 +171,8 @@ Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_L
                 <div class="box controls">
                     <form action="">
                         <div class="btn-group" role="group" aria-label="Basic example">
-                            <button type="button" id="buttonTrail"  class="btn btn-lg btn-default btn-secondary">Trail</button>
                             <button type="button" id="buttonGrid"   class="btn btn-lg btn-default btn-secondary">Grid</button>
+                            <button type="button" id="buttonTrail"  class="btn btn-lg btn-default btn-secondary">Trail</button>
                             <button type="button" id="buttonColors" class="btn btn-lg btn-default btn-secondary">Colors</button>
                         </div>
                     </form>
@@ -166,14 +185,29 @@ Wikipedia article on <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_L
     </div>
 </div>
 
-<p>&nbsp;</p>
+<div class="row" id="canvascontainer">
 
-<div class="row">
-
-    <canvas id="canvas" width="900" height="450"></canvas>
-
-    <p>&nbsp;</p>
-    <p>&nbsp;</p>
+  <table border="0">
+    <tr>
+      <td>
+        <span class="label label-brightmono" id="zone1label">Zone 1</span>
+      </td><td align="right">
+        <span class="label label-brightmono" id="zone2label">Zone 2</span>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2">
+        <canvas id="canvas" width="900" height="450">
+        </canvas>
+      </td>
+    </tr>
+    <tr>
+      <td>
+        <span class="label label-brightmono" id="zone3label">Zone 3</span>
+      </td><td align="right">
+        <span class="label label-brightmono" id="zone4label">Zone 4</span>
+      </td>
+    </tr>
 
 </div>
 

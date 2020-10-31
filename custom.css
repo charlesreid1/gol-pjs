@@ -4,3 +4,8 @@
 .scoreboard-panel span, .stats-panel span {
   padding: 5px;
 }
+
+.label-brightmono {
+  background-color: #eee;
+  color: #333;
+}

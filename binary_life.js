@@ -22,6 +22,7 @@
   // Colors
   var realBackgroundColor = "#272b30";
   var gridStrokeColor1    = "#3a3a3a";
+  var mapZoneStrokeColor  = "#dddddd";
   var grays = ["#3a3a3a", "#404040"];
 
   var GOL = {
@@ -41,10 +42,18 @@
         mapZone4Name: 'Zone 4',
         initialConditions1: '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
         initialConditions2: '[{"23":[30]},{"22":[32]},{"21":[29,30,33,34,35]}]',
-        columns: 120,
+        columns: 100,
         rows: 100,
         cellSize: 7
       }
+    },
+
+    defaultMap : {
+      initialConditions1: '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
+      initialConditions2: '[{"23":[30]},{"22":[32]},{"21":[29,30,33,34,35]}]',
+      columns: 100,
+      rows: 100,
+      cellSize: 7
     },
 
     teamNames: [],
@@ -107,13 +116,14 @@
     // Grid style
     grid : {
       current : 0,
+      mapOverlay : false,
 
       schemes : [
         {
-          color : gridStrokeColor1
+          color : gridStrokeColor1,
         },
         {
-          color : '' // Special case: 0px grid
+          color : '', // Special case: 0px grid
         },
       ],
     },
@@ -212,6 +222,9 @@
         this.game_mode = true;
         this.sandbox_mode = false;
 
+        // Enable map overlay
+        this.grid.mapOverlay = true;
+
         // Get game endpoint and put it in this.gameApiResult
         // this.gameApiResult = json;
         this.gameApiResult = this.defaultGameApiResult;
@@ -220,21 +233,24 @@
         this.teamNames = [this.gameApiResult.team1Name, this.gameApiResult.team2Name];
         this.colors.alive = [this.gameApiResult.team1Color, this.gameApiResult.team2Color];
 
-        // Map data
-        var thisMap = this.gameApiResult.map;
-        // Initial conditions
-        this.initialState1 = thisMap.initialConditions1;
-        this.initialState2 = thisMap.initialConditions2;
-        // Zoom info
-        this.columns = thisMap.columns;
-        this.rows = thisMap.rows;
-        this.cellSize = thisMap.cellSize;
+        // Also, store map data as its own variable
+        // (useful b/c we may want a map but not in game mode)
+        this.mapApiResult = this.gameApiResult.map;
+
+        // Map initial conditions
+        this.initialState1 = this.mapApiResult.initialConditions1;
+        this.initialState2 = this.mapApiResult.initialConditions2;
+
+        // Map zoom info
+        this.columns  = this.mapApiResult.columns;
+        this.rows     = this.mapApiResult.rows;
+        this.cellSize = this.mapApiResult.cellSize;
 
       } else {
 
         // User NOT providing gameId means we go to sandbox mode
         this.mapId = this.helpers.getUrlParameter('mapId');
-        this.random = parseInt(this.helpers.getUrlParameter('random'), 10);
+        this.random = parseInt(this.helpers.getUrlParameter('random'));
         this.s1user = this.helpers.getUrlParameter('s1');
         this.s2user = this.helpers.getUrlParameter('s2');
 
@@ -242,10 +258,6 @@
         // Sandbox mode
         this.game_mode = false;
         this.sandbox_mode = true;
-
-        // Team names and colors
-        this.teamNames = [this.defaultGameApiResult.team1Name, this.defaultGameApiResult.team2Name];
-        this.colors.alive = [this.defaultGameApiResult.team1Color, this.defaultGameApiResult.team2Color];
 
         if (this.mapId != null) {
           // Use user-specified map, map's zoom
@@ -258,6 +270,8 @@
           this.columns = thisMap.columns;
           this.rows = thisMap.rows;
           this.cellSize = thisMap.cellSize;
+          // Enable map overlay
+          this.grid.mapOverlay = true;
 
         } else {
           if (this.random == 1) {
@@ -268,11 +282,8 @@
 
           } else if ((this.s1user == null) && (this.s2user == null)) {
             // User provided no s1 or s2
-            //
-            // Revisit what to do here.
-            // Explicitly define a default map dict separately.
-            this.initialState1 = this.defaultGameApiResult.map.initialConditions1;
-            this.initialState2 = this.defaultGameApiResult.map.initialConditions2;
+            this.initialState1 = this.defaultMap.initialConditions1;
+            this.initialState2 = this.defaultMap.initialConditions2;
 
           } else {
             // User provided s1 or s2
@@ -441,9 +452,16 @@
       this.element.generation.innerHTML = '0';
 
       if (this.game_mode===true) {
-        // Hide the clear button in game mode
+        // In game mode, hide controls that the user won't need
         this.element.clearButton.remove();
         this.element.colorButton.remove();
+      }
+
+      if (this.grid.mapOverlay===true) {
+
+      } else {
+        // Remove the Map line from the scoreboard
+        this.element.mapScoreboardPanel.remove();
       }
 
       liveCounts = this.getCounts();
@@ -514,8 +532,8 @@
 
       this.element.clearButton = document.getElementById('buttonClear');
       this.element.colorButton = document.getElementById('buttonColors');
-
-      this.element.messages.layout = document.getElementById('layoutMessages');
+      this.element.mapName = document.getElementById('mapname-label');
+      this.element.mapScoreboardPanel = document.getElementById('scoreboard-panel-map');
     },
 
 
@@ -874,6 +892,7 @@
         this.context.fillStyle = GOL.grid.schemes[GOL.grid.current].color;
         this.context.fillRect(0, 0, this.width, this.height);
 
+
         for (i = 0 ; i < GOL.columns; i++) {
           for (j = 0 ; j < GOL.rows; j++) {
             if (GOL.listLife.isAlive(i, j)) {
@@ -924,6 +943,32 @@
         }
 
         this.context.fillRect(this.cellSpace + (this.cellSpace * i) + (this.cellSize * i), this.cellSpace + (this.cellSpace * j) + (this.cellSize * j), this.cellSize, this.cellSize);
+
+        // Draw light strokes cutting the canvas through the middle
+        if (i===parseInt(GOL.columns/2)) {
+          if (GOL.grid.mapOverlay==true) {
+            this.context.fillStyle = mapZoneStrokeColor;
+            this.context.fillRect(
+              (this.cellSpace * i+1) + (this.cellSize * i+1) - 2*this.cellSpace,
+              (this.cellSpace * j) + (this.cellSize * j) + this.cellSpace,
+              this.cellSpace,
+              this.cellSize,
+            );
+          }
+        }
+
+        if (j===parseInt(GOL.rows/2)) {
+          if (GOL.grid.mapOverlay==true) {
+            this.context.fillStyle = mapZoneStrokeColor;
+            console.log('wat');
+            this.context.fillRect(
+              (this.cellSpace * i+1) + (this.cellSize * i+1) - 2*this.cellSpace,
+              (this.cellSpace * j) + (this.cellSize * j) + this.cellSpace,
+              this.cellSize,
+              this.cellSpace,
+            );
+          }
+        }
 
       },
 
