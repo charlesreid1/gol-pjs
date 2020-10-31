@@ -1,0 +1,8 @@
+the two colors aren't quite evolving right.
+
+one of them evolves correctly, with 10 cells on gen 2,
+
+another does not, with gaps filled incorrectly. maybe an index error?
+
+specific to color 2 though. that's what's so weird.
+
