@@ -1275,10 +1275,10 @@
               var xx = state2[i][j];
               if (xx >= (x-1)) {
                 if (xx === (x-1)) {
-                  // top left
+                  // left
                   color2++;
                 } else if (xx === (x+1)) {
-                  // top right
+                  // right
                   color2++;
                 }
               }
