@@ -10,21 +10,38 @@ class API(object):
           team1Color = '#9963AB',
           team2Name = 'Orange',
           team2Color = '#E86215',
-          map = dict(
-            id = 1,
-            mapName = 'Main Map',
-            mapZone1Name = 'Zone 1',
-            mapZone2Name = 'Zone 2',
-            mapZone3Name = 'Zone 3',
-            mapZone4Name = 'Zone 4',
-            initialConditions1 = '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
-            initialConditions2 = '[{"21":[29,30,33,34,35]},{"22":[32]},{"23":[30]}]',
-            columns = 120,
-            rows = 100,
-            cellSize = 7
-          )
+          map = self.get_default_map(),
         )
         return default_game_api_result
+
+    @classmethod
+    def get_default_game(self):
+        default_game_api_result = dict(
+          id = '0000-0000-0000',
+          team1Name = 'Purple',
+          team1Color = '#9963AB',
+          team2Name = 'Orange',
+          team2Color = '#E86215',
+          map = self.get_default_map(),
+        )
+        return default_game_api_result
+
+    @classmethod
+    def get_default_map(self):
+        map_api_result = dict(
+          id = 1,
+          mapName = 'Default Map',
+          mapZone1Name = 'Zone 1',
+          mapZone2Name = 'Zone 2',
+          mapZone3Name = 'Zone 3',
+          mapZone4Name = 'Zone 4',
+          initialConditions1 = '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
+          initialConditions2 = '[{"21":[29,30,33,34,35]},{"22":[32]},{"23":[30]}]',
+          columns = 120,
+          rows = 100,
+          cellSize = 7
+        )
+        return map_api_result
 
 class GOL(object):
     team_names = []
@@ -84,13 +101,17 @@ class GOL(object):
 
     def load_config(self, **kwargs):
         """Load configuration from user-provided input params"""
-        self.game_api_result = API.get_game()
+        if gameId in kwargs:
+            self.game_api_result = API.get_game(kwargs['gameId'])
+            self.game_map = self.game_api_result['map']
+        elif mapId in kwargs:
+            self.game_api_result = API.get_default_game()
+            self.game_map = API.get_map(kwargs['mapId'])
 
         # Extract team info
         self.team_names = [self.game_api_result['team1Name'], self.game_api_result['team2Name']]
 
         # Extract map info
-        self.game_map = self.game_api_result['map']
         self.ic1 = self.game_map['initialConditions1']
         self.ic2 = self.game_map['initialConditions2']
         self.columns = self.game_map['columns']
@@ -665,7 +686,7 @@ class GOL(object):
 
 
 if __name__=="__main__":
-    gol = GOL()
+    gol = GOL(gameId='5')
     print(gol)
     for i in range(500):
         gol.next_step()
