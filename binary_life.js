@@ -262,14 +262,15 @@
         if (this.mapId != null) {
           // Use user-specified map, map's zoom
           // Get map endpoint and put it in this.mapApiResult
-          // var thisMap = json
+          // (for now we just use a dummy default map)
+          this.mapApiResult = this.defaultMap;
           // Initial conditions
-          this.initialState1 = thisMap.initialConditions1;
-          this.initialState2 = thisMap.initialConditions2;
+          this.initialState1 = this.mapApiResult.initialConditions1;
+          this.initialState2 = this.mapApiResult.initialConditions2;
           // Zoom info
-          this.columns = thisMap.columns;
-          this.rows = thisMap.rows;
-          this.cellSize = thisMap.cellSize;
+          this.columns = this.mapApiResult.columns;
+          this.rows = this.mapApiResult.rows;
+          this.cellSize = this.mapApiResult.cellSize;
           // Enable map overlay
           this.grid.mapOverlay = true;
 
@@ -281,7 +282,8 @@
             this.initialState2 = 'random';
 
           } else if ((this.s1user == null) && (this.s2user == null)) {
-            // User provided no s1 or s2
+            // User provided no s1 or s2,
+            // so use the default map
             this.initialState1 = this.defaultMap.initialConditions1;
             this.initialState2 = this.defaultMap.initialConditions2;
 
@@ -458,10 +460,18 @@
       }
 
       if (this.grid.mapOverlay===true) {
-
+        this.element.mapName.innerHTML = this.mapApiResult['mapName'];
+        this.element.z1lab.innerHTML = this.mapApiResult['mapZone1Name'];
+        this.element.z2lab.innerHTML = this.mapApiResult['mapZone2Name'];
+        this.element.z3lab.innerHTML = this.mapApiResult['mapZone3Name'];
+        this.element.z4lab.innerHTML = this.mapApiResult['mapZone4Name'];
       } else {
         // Remove the Map line from the scoreboard
         this.element.mapScoreboardPanel.remove();
+        this.element.z1lab.remove();
+        this.element.z2lab.remove();
+        this.element.z3lab.remove();
+        this.element.z4lab.remove();
       }
 
       liveCounts = this.getCounts();
@@ -532,8 +542,14 @@
 
       this.element.clearButton = document.getElementById('buttonClear');
       this.element.colorButton = document.getElementById('buttonColors');
+
       this.element.mapName = document.getElementById('mapname-label');
       this.element.mapScoreboardPanel = document.getElementById('scoreboard-panel-map');
+
+      this.element.z1lab = document.getElementById('zone1label');
+      this.element.z2lab = document.getElementById('zone2label');
+      this.element.z3lab = document.getElementById('zone3label');
+      this.element.z4lab = document.getElementById('zone4label');
     },
 
 
