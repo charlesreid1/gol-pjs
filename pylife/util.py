@@ -60,38 +60,12 @@ def get_pattern(pattern_name):
 
 
 if __name__=="__main__":
-    #print("baseline:")
-    #print_pattern_url(
-    #    p1='timebomb',
-    #    xoff=[40,0],
-    #    yoff=[30,0],
-    #)
-    #print("hflip:")
-    #print_pattern_url(
-    #    p1='timebomb',
-    #    xoff=[40,0],
-    #    yoff=[30,0],
-    #    hflip=[True,False]
-    #)
-    #print("vflip:")
-    #print_pattern_url(
-    #    p1='timebomb',
-    #    xoff=[40,0],
-    #    yoff=[30,0],
-    #    vflip=[True,False]
-    #)
-    print("rot90:")
+    print("baseline:")
     print_pattern_url(
-        p1='timebomb',
-        xoff=[40,0],
-        yoff=[30,0],
-        rot=[90,0]
-    )
-    print("rot270:")
-    print_pattern_url(
-        p1='timebomb',
-        xoff=[40,0],
-        yoff=[30,0],
-        rot=[270,0]
+        p1='twoglidermess',
+        p2='twoglidermess',
+        xoff=[70,20],
+        yoff=[30,70],
+        vflip=[True, False]
     )
 
