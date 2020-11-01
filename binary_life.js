@@ -31,8 +31,10 @@
       id: '0000-0000-0000',
       team1Name: 'Purple',
       team1Color: '#9963AB',
+      //team1Score: 55,
       team2Name: 'Orange',
       team2Color: '#E86215',
+      //team2Score: 91,
       map: {
         id: 1,
         mapName: 'Main Map',
@@ -40,8 +42,8 @@
         mapZone2Name: 'Zone 2',
         mapZone3Name: 'Zone 3',
         mapZone4Name: 'Zone 4',
-        initialConditions1: '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
-        initialConditions2: '[{"23":[30]},{"22":[32]},{"21":[29,30,33,34,35]}]',
+        initialConditions1: '[{"50":[60]},{"51":[62]},{"52":[59,60,63,64,65]}]',
+        initialConditions2: '[{"31":[29,30,33,34,35]},{"32":[32]},{"33":[30]}]',
         columns: 100,
         rows: 100,
         cellSize: 7
@@ -51,7 +53,7 @@
     defaultMap : {
       initialConditions1: '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
       initialConditions2: '[{"23":[30]},{"22":[32]},{"21":[29,30,33,34,35]}]',
-      columns: 100,
+      columns: 80,
       rows: 100,
       cellSize: 7
     },
@@ -69,12 +71,16 @@
     running : false,
     autoplay : false,
 
+    // information about winner/loser
+    showWinnersLosers : false,
+    foundVictor : false,
+    runningAvgWindow : [],
+    runningAvgLast3 : [0.0, 0.0, 0.0],
 
     // Clear state
     clear : {
       schedule : false
     },
-
 
     // Average execution times
     times : {
@@ -96,9 +102,12 @@
       team1name: null,
       team2color: null,
       tam2name: null,
-      messages : {
-        layout : null
-      }
+      z1lab: null,
+      z2lab: null,
+      z3lab: null,
+      z4lab: null,
+      mapName: null,
+      mapScoreboardPanel: null,
     },
 
     // Initial state
@@ -183,7 +192,7 @@
      * On Load Event
      */
     init : function() {
-      try {
+      //try {
         this.listLife.init();   // Reset/init algorithm
         this.loadConfig();      // Load config from URL (autoplay, colors, zoom, ...)
         this.keepDOMElements(); // Keep DOM References (getElementsById)
@@ -191,9 +200,10 @@
         this.canvas.init();     // Init canvas GUI
         this.registerEvents();  // Register event handlers
         this.prepare();
-      } catch (e) {
-        alert("Error: "+e);
-      }
+      //} catch (e) {
+      //  console.log("Error: " + e);
+      //  //alert("Error: "+e);
+      //}
     },
 
 
@@ -228,6 +238,18 @@
         // Get game endpoint and put it in this.gameApiResult
         // this.gameApiResult = json;
         this.gameApiResult = this.defaultGameApiResult;
+
+        // Determine if we know a winner/loser
+        if (this.gameApiResult.hasOwnProperty('team1Score') && this.gameApiResult.hasOwnProperty('team2Score')) {
+          var s1 = this.gameApiResult.team1Score;
+          var s2 = this.gameApiResult.team2Score;
+          this.showWinnersLosers = true;
+          if (s1 > s2) {
+            this.whoWon = 1;
+          } else {
+            this.whoWon = 2;
+          }
+        }
 
         // Team names and colors
         this.teamNames = [this.gameApiResult.team1Name, this.gameApiResult.team2Name];
@@ -321,7 +343,13 @@
           this.colors.alive = this.colors.schemes[this.colors.current].alive;
           // Replace team names with color labels
           this.teamNames = this.colors.schemes[this.colors.current].alive_labels;
+
         }
+      }
+
+      // Initialize the victor percent running average window array
+      for (var i = 0; i < Math.max(this.columns, this.rows); i++) {
+        this.runningAvgWindow[i] = 0;
       }
 
       // Initial grid config
@@ -443,6 +471,81 @@
       this.prepare();
     },
 
+    approxEqual : function(a, b, tol) {
+      var aa = parseFloat(a);
+      var bb = parseFloat(b);
+      var smol = 1e-12;
+      return Math.abs(a-b)/Math.abs(a + smol) < tol;
+    },
+
+    /**
+     * Check for a victor
+     */
+    checkForVictor : function(liveCounts) {
+      if (this.foundVictor==false) {
+        var maxDim = Math.max(2*this.columns, 2*this.rows);
+        // update running average window
+        if (this.generation < maxDim) {
+          // keep populating the window with victory pct
+          this.runningAvgWindow[this.generation] = parseFloat(liveCounts.victoryPct);
+        } else {
+          // update running average window with next victory pct
+          var removed = this.runningAvgWindow.shift();
+          this.runningAvgWindow.push(parseFloat(liveCounts.victoryPct));
+
+          // compute running average
+          var sum = 0.0;
+          for (var i = 0; i < this.runningAvgWindow.length; i++) {
+            sum += this.runningAvgWindow[i];
+          }
+          var runningAvg = sum/this.runningAvgWindow.length;
+
+          // update running average last 3
+          removed = this.runningAvgLast3.shift();
+          this.runningAvgLast3.push(runningAvg);
+          console.log(this.generation + ' ' + runningAvg);
+
+          var tol;
+          if (maxDim < 100) {
+            tol = 1e-12;
+          } else {
+            tol = 1e-8;
+          }
+          if (!this.approxEqual(removed, 0.0, tol)) {
+            // we have not found a victor yet, so check for one now
+            var bool0eq1 = this.approxEqual(this.runningAvgLast3[0], this.runningAvgLast3[1], tol);
+            var bool1eq2 = this.approxEqual(this.runningAvgLast3[1], this.runningAvgLast3[2], tol);
+            if (bool0eq1 && bool1eq2) {
+              this.foundVictor = true;
+              this.showWinnersLosers = true;
+              if (liveCounts.liveCells1 > liveCounts.liveCells2) {
+                this.whoWon = 1;
+                this.running = false;
+              } else if (liveCounts.liveCells1 < liveCounts.liveCells2) {
+                this.whoWon = 2;
+                this.running = false;
+              } else {
+                // huh? should not be here
+                this.showWinnersLosers = false;
+              }
+            }
+          }
+        }
+      }
+    },
+
+    /**
+     * Update the statistics
+     */
+    updateStatisticsElements : function(liveCounts) {
+      this.element.livecells.innerHTML  = liveCounts.liveCells;
+      this.element.livecells1.innerHTML = liveCounts.liveCells1;
+      this.element.livecells2.innerHTML = liveCounts.liveCells2;
+      this.element.victory.innerHTML    = liveCounts.victoryPct.toFixed(1) + "%";
+      this.element.coverage.innerHTML   = liveCounts.coverage.toFixed(2) + "%";
+      this.element.territory1.innerHTML = liveCounts.territory1.toFixed(2) + "%";
+      this.element.territory2.innerHTML = liveCounts.territory2.toFixed(2) + "%";
+    },
 
     /**
      * Prepare DOM elements and Canvas for a new run
@@ -474,17 +577,27 @@
         this.element.z4lab.remove();
       }
 
-      liveCounts = this.getCounts();
-      this.element.livecells.innerHTML  = liveCounts[0];
-      this.element.livecells1.innerHTML = liveCounts[1];
-      this.element.livecells2.innerHTML = liveCounts[2];
-      this.element.victory.innerHTML    = liveCounts[3] + "%";
-      this.element.coverage.innerHTML   = liveCounts[4] + "%";
-      this.element.territory1.innerHTML = liveCounts[5] + "%";
-      this.element.territory2.innerHTML = liveCounts[6] + "%";
-
       // Color any text and populate any team names
       this.updateTeamNamesColors();
+
+      // Update live counts for initial state
+      var liveCounts = this.getCounts();
+      this.updateStatisticsElements(liveCounts);
+
+      // Indicate winner/loser, if we know
+      this.checkForVictor(liveCounts);
+      if (this.showWinnersLosers) {
+        if (this.whoWon == 1) {
+          this.element.team1winner.innerHTML = 'W';
+          this.element.team2loser.innerHTML = 'L';
+        } else if (this.whoWon == 2) {
+          this.element.team2winner.innerHTML = 'W';
+          this.element.team1loser.innerHTML = 'L';
+        } else {
+          // huh? should not be here
+          this.showWinnersLosers = false;
+        }
+      }
 
       this.canvas.clearWorld(); // Reset GUI
       this.canvas.drawWorld(); // Draw State
@@ -550,6 +663,11 @@
       this.element.z2lab = document.getElementById('zone2label');
       this.element.z3lab = document.getElementById('zone3label');
       this.element.z4lab = document.getElementById('zone4label');
+
+      this.element.team1winner = document.getElementById('team1winner');
+      this.element.team2winner = document.getElementById('team2winner');
+      this.element.team1loser = document.getElementById('team1loser');
+      this.element.team2loser = document.getElementById('team2loser');
     },
 
 
@@ -610,7 +728,7 @@
 
       guiTime = (new Date()) - guiTime;
 
-      // Pos-run updates
+      // Post-run updates
 
       // Clear Trail
       if (GOL.trail.schedule) {
@@ -634,13 +752,22 @@
       GOL.generation++;
       GOL.element.generation.innerHTML = GOL.generation;
 
-      GOL.element.livecells.innerHTML  = liveCounts[0];
-      GOL.element.livecells1.innerHTML = liveCounts[1];
-      GOL.element.livecells2.innerHTML = liveCounts[2];
-      GOL.element.victory.innerHTML    = liveCounts[3] + "%";
-      GOL.element.coverage.innerHTML   = liveCounts[4] + "%";
-      GOL.element.territory1.innerHTML = liveCounts[5] + "%";
-      GOL.element.territory2.innerHTML = liveCounts[6] + "%";
+      // Update statistics
+      GOL.updateStatisticsElements(liveCounts);
+
+      // Check for victor
+      GOL.checkForVictor(liveCounts);
+
+      // Update winner/loser if found
+      if (GOL.showWinnersLosers) {
+        if (GOL.whoWon == 1) {
+          GOL.element.team1winner.innerHTML = 'W';
+          GOL.element.team2loser.innerHTML = 'L';
+        } else {
+          GOL.element.team2winner.innerHTML = 'W';
+          GOL.element.team1loser.innerHTML = 'L';
+        }
+      }
 
       r = 1.0/GOL.generation;
       GOL.times.algorithm = (GOL.times.algorithm * (1 - r)) + (algorithmTime * r);
@@ -976,7 +1103,6 @@
         if (j===parseInt(GOL.rows/2)) {
           if (GOL.grid.mapOverlay==true) {
             this.context.fillStyle = mapZoneStrokeColor;
-            console.log('wat');
             this.context.fillRect(
               (this.cellSpace * i+1) + (this.cellSize * i+1) - 2*this.cellSpace,
               (this.cellSpace * j) + (this.cellSize * j) + this.cellSpace,
@@ -1076,7 +1202,7 @@
         var liveCells = 0;
         var coverageCells = 0;
         for (i = 0; i < state.length; i++) {
-          if ((state[i][0] >= 0) && (state[i][0] < GOL.rows)) {
+         if ((state[i][0] >= 0) && (state[i][0] < GOL.rows)) {
             for (j = 1; j < state[i].length; j++) {
               if ((state[i][j] >= 0) && (state[i][j] < GOL.columns)) {
                 liveCells++;
@@ -1115,26 +1241,26 @@
         } else {
           victoryPct = liveCells2/(1.0*liveCells1 + liveCells2);
         }
-        victoryPct = (victoryPct * 100).toFixed(1);
+        victoryPct = victoryPct * 100;
 
         var totalArea = GOL.columns * GOL.rows;
         var coverage = liveCells/(1.0*totalArea);
-        coverage = (coverage * 100).toFixed(2);
+        coverage = coverage * 100;
 
         var territory1 = liveCells1/(1.0*totalArea);
-        territory1 = (territory1 * 100).toFixed(2);
+        territory1 = territory1 * 100;
         var territory2 = liveCells2/(1.0*totalArea);
-        territory2 = (territory2 * 100).toFixed(2);
+        territory2 = territory2 * 100;
 
-        return [
-          liveCells,
-          liveCells1,
-          liveCells2,
-          victoryPct,
-          coverage,
-          territory1,
-          territory2
-        ];
+        return {
+          liveCells: liveCells,
+          liveCells1 : liveCells1,
+          liveCells2 : liveCells2,
+          victoryPct : victoryPct,
+          coverage : coverage,
+          territory1 : territory1,
+          territory2 : territory2,
+        };
       },
 
 
@@ -1394,6 +1520,7 @@
 
               if (state[i-1][k] >= (x-1) ) {
 
+                // NW
                 if (state[i-1][k] === (x - 1)) {
                   possibleNeighborsList[0] = undefined;
                   this.topPointer = k + 1;
@@ -1408,24 +1535,27 @@
                   }
                 }
 
+                // N
                 if (state[i-1][k] === x) {
                   possibleNeighborsList[1] = undefined;
                   this.topPointer = k;
                   neighbors++;
                   var xx = state[i-1][k];
                   var yy = state[i-1][0];
-                  if (this.getCellColor(xx, yy) == 1) {
+                  var cellcol = this.getCellColor(xx, yy);
+                  if (cellcol == 1) {
                     neighbors1++;
-                  }
-                  if (this.getCellColor(xx, yy) == 2) {
+                  } else if (cellcol == 2) {
                     neighbors2++;
                   }
                 }
 
+                // NE
                 if (state[i-1][k] === (x + 1)) {
                   possibleNeighborsList[2] = undefined;
 
                   if (k == 1) {
+                    // why 1? why not 0? is this b/c offset-by-1 thing?
                     this.topPointer = 1;
                   } else {
                     this.topPointer = k - 1;
@@ -1434,10 +1564,10 @@
                   neighbors++;
                   var xx = state[i-1][k];
                   var yy = state[i-1][0];
-                  if (this.getCellColor(xx, yy) == 1) {
+                  var cellcol = this.getCellColor(xx, yy);
+                  if (cellcol == 1) {
                     neighbors1++;
-                  }
-                  if (this.getCellColor(xx, yy) == 2) {
+                  } else if (cellcol == 2) {
                     neighbors2++;
                   }
                 }
@@ -1459,10 +1589,10 @@
               neighbors++;
               var xx = state[i][k];
               var yy = state[i][0];
-              if (this.getCellColor(xx, yy) == 1) {
+              var cellcol = this.getCellColor(xx, yy);
+              if (cellcol == 1) {
                 neighbors1++;
-              }
-              if (this.getCellColor(xx, yy) == 2) {
+              } else if (cellcol == 2) {
                 neighbors2++;
               }
             }
@@ -1472,10 +1602,10 @@
               neighbors++;
               var xx = state[i][k];
               var yy = state[i][0];
-              if (this.getCellColor(xx, yy) == 1) {
+              var cellcol = this.getCellColor(xx, yy);
+              if (cellcol == 1) {
                 neighbors1++;
-              }
-              if (this.getCellColor(xx, yy) == 2) {
+              } else if (cellcol == 2) {
                 neighbors2++;
               }
             }
@@ -1498,10 +1628,10 @@
                   neighbors++;
                   var xx = state[i+1][k];
                   var yy = state[i+1][0];
-                  if (this.getCellColor(xx, yy) == 1) {
+                  var cellcol = this.getCellColor(xx, yy);
+                  if (cellcol == 1) {
                     neighbors1++;
-                  }
-                  if (this.getCellColor(xx, yy) == 2) {
+                  } else if (cellcol == 2) {
                     neighbors2++;
                   }
                 }
@@ -1512,10 +1642,10 @@
                   neighbors++;
                   var xx = state[i+1][k];
                   var yy = state[i+1][0];
-                  if (this.getCellColor(xx, yy) == 1) {
+                  var cellcol = this.getCellColor(xx, yy);
+                  if (cellcol == 1) {
                     neighbors1++;
-                  }
-                  if (this.getCellColor(xx, yy) == 2) {
+                  } else if (cellcol == 2) {
                     neighbors2++;
                   }
                 }
@@ -1532,10 +1662,10 @@
                   neighbors++;
                   var xx = state[i+1][k];
                   var yy = state[i+1][0];
-                  if (this.getCellColor(xx, yy) == 1) {
+                  var cellcol = this.getCellColor(xx, yy);
+                  if (cellcol == 1) {
                     neighbors1++;
-                  }
-                  if (this.getCellColor(xx, yy) == 2) {
+                  } else if (cellcol == 2) {
                     neighbors2++;
                   }
                 }
