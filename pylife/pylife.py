@@ -72,6 +72,7 @@ class GOL(object):
         elif 'mapId' in kwargs:
             self.game_api_result = API.get_default_game()
             self.game_map = API.get_map(kwargs['mapId'])
+            print('http://localhost:8000/binary_life.html' + self.game_map['url'])
         else:
             self.game_api_result = API.get_default_game()
             self.game_map = API.get_default_map()
@@ -701,9 +702,7 @@ class GOL(object):
 
 
 if __name__=="__main__":
-    gol = GOL()
+    gol = GOL(mapId=1)
     for i in range(2500):
         live_counts = gol.next_step()
-        if live_counts == None:
-            break
     print(gol.generation)
