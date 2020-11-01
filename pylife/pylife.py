@@ -3,7 +3,7 @@ import json
 
 class API(object):
     @classmethod
-    def get_game(self):
+    def get_game(self, gameId):
         default_game_api_result = dict(
           id = '0000-0000-0000',
           team1Name = 'Purple',
@@ -27,6 +27,23 @@ class API(object):
         return default_game_api_result
 
     @classmethod
+    def get_map(self, mapId):
+        map_api_result = dict(
+          id = 1,
+          mapName = 'Default Map',
+          mapZone1Name = 'Zone 1',
+          mapZone2Name = 'Zone 2',
+          mapZone3Name = 'Zone 3',
+          mapZone4Name = 'Zone 4',
+          initialConditions1 = '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
+          initialConditions2 = '[{"21":[29,30,33,34,35]},{"22":[32]},{"23":[30]}]',
+          columns = 80,
+          rows = 100,
+          cellSize = 7
+        )
+        return map_api_result
+
+    @classmethod
     def get_default_map(self):
         map_api_result = dict(
           id = 1,
@@ -37,7 +54,7 @@ class API(object):
           mapZone4Name = 'Zone 4',
           initialConditions1 = '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
           initialConditions2 = '[{"21":[29,30,33,34,35]},{"22":[32]},{"23":[30]}]',
-          columns = 120,
+          columns = 80,
           rows = 100,
           cellSize = 7
         )
@@ -58,11 +75,17 @@ class GOL(object):
     actual_state = []
     actual_state1 = []
     actual_state2 = []
+    found_victor = False
+    running_avg_window = []
+    running_avg_last3 = [0.0, 0.0, 0.0]
+    running = False
 
     def __init__(self, **kwargs):
         """Constructor just sets everything up"""
         self.load_config(**kwargs)
         self.load_state()
+        self.get_live_counts()
+        self.running = True
 
     def __repr__(self):
         s = []
@@ -101,12 +124,22 @@ class GOL(object):
 
     def load_config(self, **kwargs):
         """Load configuration from user-provided input params"""
-        if gameId in kwargs:
+        if 'gameId' in kwargs:
             self.game_api_result = API.get_game(kwargs['gameId'])
             self.game_map = self.game_api_result['map']
-        elif mapId in kwargs:
+        elif 'mapId' in kwargs:
             self.game_api_result = API.get_default_game()
             self.game_map = API.get_map(kwargs['mapId'])
+        else:
+            self.game_api_result = API.get_default_game()
+            self.game_map = API.get_default_map()
+
+        # Whether to stop when a victor is detected
+        if 'halt' in kwargs:
+            self.halt = kwargs['halt']
+        else:
+            self.halt = True
+        self.found_victor = False
 
         # Extract team info
         self.team_names = [self.game_api_result['team1Name'], self.game_api_result['team2Name']]
@@ -139,7 +172,40 @@ class GOL(object):
                 for xx in s2row[y]:
                     self.actual_state = self.add_cell(xx, yy, self.actual_state)
                     self.actual_state2 = self.add_cell(xx, yy, self.actual_state2)
-        
+
+    def update_moving_avg(self, livecounts):
+        if not self.found_victor:
+            maxdim = max(2*self.columns, 2*self.rows)
+            if self.generation < maxdim:
+                self.running_avg_window.append(livecounts['victoryPct'])
+            else:
+                self.running_avg_window = self.running_avg_window[1:] + [livecounts['victoryPct']]
+                summ = sum(self.running_avg_window)
+                running_avg = summ/(1.0*len(self.running_avg_window))
+
+                # update running average last 3
+                removed = self.running_avg_last3[0]
+                self.running_avg_last3 = self.running_avg_last3[1:] + [running_avg]
+                print(str(self.generation) + ' ' + str(running_avg))
+
+                tol = 1e-12
+                if not self.approx_equal(removed, 0.0, tol):
+                    # no victor found yet
+                    b1 = self.approx_equal(self.running_avg_last3[0], self.running_avg_last3[1], tol)
+                    b2 = self.approx_equal(self.running_avg_last3[1], self.running_avg_last3[2], tol)
+                    if b1 and b2:
+                        self.found_victor = True
+                        if livecounts['liveCells1'] > livecounts['liveCells2']:
+                            self.who_won = 1
+                        elif livecounts['liveCells1'] < livecounts['liveCells2']:
+                            self.who_won = 2
+                        else:
+                            self.who_won = 0
+
+    def approx_equal(self, a, b, tol):
+        SMOL = 1e-12
+        return (abs(b-a)/abs(a+SMOL))<tol
+
     def is_alive(self, x, y):
         """
         Boolean function: is the cell at x, y alive
@@ -670,24 +736,33 @@ class GOL(object):
         self.territory1 = territory1
         self.territory2 = territory2
 
-        return [
-          livecells,
-          livecells1,
-          livecells2,
-          victory,
-          coverage,
-          territory1,
-          territory2
-        ]
+        return dict(
+          liveCells=livecells,
+          liveCells1=livecells1,
+          liveCells2=livecells2,
+          victoryPct=victory,
+          coverage=coverage,
+          territory1=territory1,
+          territory2=territory2,
+        )
 
     def next_step(self):
-        live_counts = self.next_generation()
-        self.generation += 1
+        if self.running is False:
+            return self.get_live_counts()
+        elif (self.halt and self.found_victor):
+            self.running = False
+            return self.get_live_counts()
+        else:
+            live_counts = self.next_generation()
+            self.update_moving_avg(live_counts)
+            self.generation += 1
+            return live_counts
 
 
 if __name__=="__main__":
-    gol = GOL(gameId='5')
-    print(gol)
-    for i in range(500):
-        gol.next_step()
-    print(gol)
+    gol = GOL()
+    for i in range(2500):
+        live_counts = gol.next_step()
+        if live_counts == None:
+            break
+    print(gol.generation)
