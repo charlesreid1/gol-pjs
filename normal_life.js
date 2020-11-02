@@ -143,7 +143,7 @@
 
       schemes : [
         {
-          color : gridStrokeColor1
+          color : tileStrokeColor1
         },
         {
           color : '' // Special case: 0px grid
