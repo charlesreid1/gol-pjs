@@ -281,8 +281,8 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            else:
-                                print("?????")
+                            #else:
+                            #    print(f"????? ({xx},{yy})")
 
                         # N
                         if state[i-1][k] == x:
@@ -296,8 +296,8 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            else:
-                                print("?????")
+                            #else:
+                            #    print(f"????? ({xx},{yy})")
 
                         # NE
                         if state[i-1][k] == (x+1):
@@ -314,8 +314,8 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            else:
-                                print("?????")
+                            #else:
+                            #    print(f"????? ({xx},{yy})")
 
                         # Break it off early
                         if state[i-1][k] > (x+1):
@@ -336,8 +336,8 @@ class GOL(object):
                         neighbors1 += 1
                     elif neighborcolor == 2:
                         neighbors2 += 1
-                    else:
-                        print("?????")
+                    #else:
+                    #    print(f"????? ({xx},{yy})")
 
                 # E
                 if (state[i][k] == (x+1)):
@@ -350,8 +350,8 @@ class GOL(object):
                         neighbors1 += 1
                     elif neighborcolor == 2:
                         neighbors2 += 1
-                    else:
-                        print("?????")
+                    #else:
+                    #    print(f"????? ({xx},{yy})")
 
                 # Break it off early
                 if (state[i][k] > (x+1)):
@@ -375,8 +375,8 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            else:
-                                print("?????")
+                            #else:
+                            #    print(f"????? ({xx},{yy})")
 
                         # S
                         if (state[i+1][k] == x):
@@ -390,8 +390,8 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            else:
-                                print("?????")
+                            #else:
+                            #    print(f"????? ({xx},{yy})")
 
                         # SE
                         if (state[i+1][k] == (x+1)):
@@ -408,8 +408,8 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            else:
-                                print("?????")
+                            #else:
+                            #    print(f"????? ({xx},{yy})")
 
                         # Break it off early
                         if state[i+1][k] > (x+1):
@@ -659,10 +659,11 @@ class GOL(object):
         self.livecells2 = livecells2
 
         victory = 0.0
+        SMOL = 1e-12
         if livecells1 > livecells2:
-            victory = livecells1/(1.0*livecells1 + livecells2)
+            victory = livecells1/(1.0*livecells1 + livecells2 + SMOL)
         else:
-            victory = livecells2/(1.0*livecells1 + livecells2)
+            victory = livecells2/(1.0*livecells1 + livecells2 + SMOL)
         victory = victory * 100
         self.victory = victory
 
@@ -702,7 +703,7 @@ class GOL(object):
 
 
 if __name__=="__main__":
-    gol = GOL(mapId=1)
-    for i in range(2500):
+    gol = GOL(mapId=5)
+    while gol.running:
         live_counts = gol.next_step()
     print(gol.generation)
