@@ -2,29 +2,6 @@ import random
 import os
 import re
 
-def pattern2url(pattern, xoffset=0, yoffset=0):
-    rows = len(pattern)
-    cols = len(pattern[0])
-    listLife = []
-    for i in range(rows):
-        listLifeRow = {}
-        for j in range(cols):
-            if pattern[i][j]=='o':
-                y = str(i+1+yoffset)
-                x = j+1+xoffset
-                if y in listLifeRow.keys():
-                    listLifeRow[y].append(x)
-                else:
-                    listLifeRow[y] = [x]
-        if len(listLifeRow.keys())>0:
-            listLife.append(listLifeRow)
-    
-    s = str(listLife)
-    s = s.split(" ")
-    listLife = "".join(s)
-    listLife = re.sub('\'', '"', listLife)
-    return listLife
-
 
 def random_twocolor(rows, cols):
     """
@@ -79,7 +56,7 @@ def random_twocolor(rows, cols):
     return pattern1_url, pattern2_url
 
 
-def twoacorn_twocolor(rows, cols):
+def twoacorn_twocolor(rows, cols, seed=None):
     """
     Generate a map wth an acorn on the top and an acorn on the bottom.
 
@@ -92,31 +69,176 @@ def twoacorn_twocolor(rows, cols):
     - get size of acorn pattern
     - ask for acorn at particular offset
     """
-    for i in range(2):
-        die = random.randint(1,3)
-        if die1 == 1:
-            # zone 1
-            centerx = (cols//2) + (cols//4)
-            centery = cols//4
-        elif die == 2:
-            # zone 2
-            centerx = cols//4
-            centery = cols//4
+    # set rng seed (optional)
+    if seed is not None:
+        random.seed(seed)
+
+    die1 = random.randint(1,3)
+    if die1 == 1:
+        # zone 1
+        centerx1 = cols//2 + cols//4
+        centery1 = rows//4
+    elif die1 == 2:
+        # zone 2
+        centerx1 = cols//4
+        centery1 = rows//4
+    else:
+        # middle of zone 1 and 2
+        centerx1 = cols//2
+        centery1 = rows//4
+
+    centerx1 += random.randint(-5, 5)
+
+    die2 = random.randint(1,3)
+    if die2 == 1:
+        # zone 3
+        centerx2 = cols//4
+        centery2 = rows//2 + rows//4
+    elif die2 == 2:
+        # zone 4
+        centerx2 = cols//2 + cols//4
+        centery2 = rows//2 + rows//4
+    else:
+        # middle of zone 3 and 4
+        centerx2 = cols//2
+        centery2 = rows//2 + rows//4
+
+    centerx2 += random.randint(-5, 5)
+
+    pattern1 = get_grid_pattern('acorn', rows, cols, xoffset=centerx1, yoffset=centery1, vflip=True)
+    pattern2 = get_grid_pattern('acorn', rows, cols, xoffset=centerx2, yoffset=centery2)
+
+    pattern1_url = pattern2url(pattern1)
+    pattern2_url = pattern2url(pattern2)
+
+    return pattern1_url, pattern2_url
+
+
+def timebomb_oscillators_twocolor(rows, cols, seed=None):
+    # set rng seed (optional)
+    if seed is not None:
+        random.seed(seed)
+
+    centerx1a = cols//2 + cols//4
+    centerx1b = cols//4
+    centery1a = rows//4
+    centery1b = centery1a
+
+    centerx1a += random.randint(-10, 10)
+    centerx1b += random.randint(-10, 10)
+    centery1a += random.randint(-10, 10)
+    centery1b += random.randint(-10, 10)
+
+    osc1a = get_grid_pattern('quadrupleburloaferimeter', rows, cols, xoffset=centerx1a, yoffset=centery1a)
+    osc1b = get_grid_pattern('quadrupleburloaferimeter', rows, cols, xoffset=centerx1b, yoffset=centery1b)
+
+    osc_pattern = pattern_union([osc1a, osc1b])
+
+    centerx2 = cols//2
+    centery2 = rows//2 + rows//4
+
+    centerx2 += random.randint(-5, 5)
+    centery2 += random.randint(-5, 5)
+
+    timebomb = get_grid_pattern('timebomb', rows, cols, xoffset=centerx2, yoffset=centery2)
+
+    pattern1_url = pattern2url(osc_pattern)
+    pattern2_url = pattern2url(timebomb)
+
+    return pattern1_url, pattern2_url
+
+
+def fourrabbits_twocolor(rows, cols, seed=None):
+    # set rng seed (optional)
+    if seed is not None:
+        random.seed(seed)
+
+    rabbit_locations1 = [
+        (cols//4, rows//4),
+        (cols//2 + cols//4, rows//4),
+    ]
+    rabbits1 = []
+    for (x,y) in rabbit_locations1:
+        x += random.randint(-5,5)
+        y += random.randint(-5,5)
+        vflipopt = bool(random.getrandbits(1))
+        hflipopt = bool(random.getrandbits(1))
+        rabbit = get_grid_pattern('rabbit', rows, cols, xoffset=x, yoffset=y, vflip=vflipopt, hflip=hflipopt)
+        rabbits1.append(rabbit)
+
+    rabbit_locations2 = [
+        (cols//4, rows//2 + rows//4),
+        (cols//2 + cols//4, rows//2 + rows//4),
+    ]
+    rabbits2 = []
+    for (x,y) in rabbit_locations2:
+        x += random.randint(-5,5)
+        y += random.randint(-5,5)
+        vflipopt = bool(random.getrandbits(1))
+        hflipopt = bool(random.getrandbits(1))
+        rabbit = get_grid_pattern('rabbit', rows, cols, xoffset=x, yoffset=y, vflip=vflipopt, hflip=hflipopt)
+        rabbits2.append(rabbit)
+
+    rabbits_pattern1 = pattern_union(rabbits1)
+    rabbits_pattern2 = pattern_union(rabbits2)
+
+    pattern1_url = pattern2url(rabbits_pattern1)
+    pattern2_url = pattern2url(rabbits_pattern2)
+
+    return pattern1_url, pattern2_url
+
+
+def twospaceshipgenerators_twocolors(rows, cols):
+    # backrake 2 laying trail of glider ships
+    # both backrakes start at very bottom
+    # squares in middle, of alternating colors
+    (xdim, ydim) = get_pattern_size('backrake2')
+
+    spaceship1x = cols//4;
+    spaceship2x = cols//2 + cols//4;
+    spaceshipy = rows - 1 - ydim;
+
+    spaceship1x += random.randint(-5,5)
+    spaceship2x += random.randint(-5,5)
+
+    generator1 = get_grid_pattern('backrake2', rows, cols, xoffset=spaceship1x, yoffset=spaceshipy, hflip=True)
+    generator2 = get_grid_pattern('backrake2', rows, cols, xoffset=spaceship2x, yoffset=spaceshipy)
+
+    nboxes = 15
+    interval_height = rows//(nboxes+1)
+    box_patterns1 = []
+    box_patterns2 = []
+    for i in range(nboxes):
+        box_x = cols//2
+        box_y = (i+1)*(rows//(nboxes+1))
+
+        box_x += random.randint(-5,5)
+        box_y += random.randint(-1,1)
+
+        box_pattern = get_grid_pattern('block', rows, cols, xoffset=box_x, yoffset=box_y)
+        if (i%2==0):
+            box_patterns1.append(box_pattern)
         else:
-            # middle of zone 1 and 2
-            centerx = cols//2
-            centery = cols//4
+            box_patterns2.append(box_pattern)
+
+    spaceship_pattern1 = pattern_union([generator1] + box_patterns1)
+    spaceship_pattern2 = pattern_union([generator2] + box_patterns2)
+
+    pattern1_url = pattern2url(spaceship_pattern1)
+    pattern2_url = pattern2url(spaceship_pattern2)
+
+    return pattern1_url, pattern2_url
 
 
 def hflip_pattern(pattern):
     """Flip a pattern horizontally"""
-    newpattern = [j for j in reversed(pattern)]
+    newpattern = ["".join(reversed(j)) for j in pattern]
     return newpattern
 
 
 def vflip_pattern(pattern):
     """Flip a pattern vertically"""
-    newpattern = ["".join(reversed(j)) for j in pattern]
+    newpattern = [j for j in reversed(pattern)]
     return newpattern
 
 
@@ -128,6 +250,30 @@ def rot_pattern(pattern, deg):
             newpattern_tup = zip(*list(reversed(newpattern)))
             newpattern = ["".join(j) for j in newpattern_tup]
     return newpattern
+
+
+def pattern2url(pattern, xoffset=0, yoffset=0):
+    rows = len(pattern)
+    cols = len(pattern[0])
+    listLife = []
+    for i in range(rows):
+        listLifeRow = {}
+        for j in range(cols):
+            if pattern[i][j]=='o':
+                y = str(i+1+yoffset)
+                x = j+1+xoffset
+                if y in listLifeRow.keys():
+                    listLifeRow[y].append(x)
+                else:
+                    listLifeRow[y] = [x]
+        if len(listLifeRow.keys())>0:
+            listLife.append(listLifeRow)
+    
+    s = str(listLife)
+    s = s.split(" ")
+    listLife = "".join(s)
+    listLife = re.sub('\'', '"', listLife)
+    return listLife
 
 
 def get_pattern_size(pattern_name, **kwargs):
@@ -226,7 +372,6 @@ def print_pattern_url(p1=None, p2=None,
         vflip=[False, False],
         rot=[0,0],
     ):
-
     url = ""
     for ip, pattern_name in enumerate([p1, p2]):
         if pattern_name != None:
