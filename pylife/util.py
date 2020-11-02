@@ -163,8 +163,8 @@ def get_grid_pattern(pattern_name, rows, columns, xoffset=0, yoffset=0, hflip=Fa
     # convert list of strings to list of lists (for convenience)
     ogpattern = get_pattern(pattern_name, hflip=hflip, vflip=vflip, rotdeg=rotdeg)
     ogpattern = [list(j) for j in ogpattern]
-    blank_column = ["."]*columns
-    newpattern = [blank_column[:] for r in range(rows)]
+    blank_row = ["."]*columns
+    newpattern = [blank_row[:] for r in range(rows)]
     (pattern_h, pattern_w) = (len(ogpattern), len(ogpattern[0]))
 
     # given offset is offset for the center of the pattern,
@@ -181,6 +181,40 @@ def get_grid_pattern(pattern_name, rows, columns, xoffset=0, yoffset=0, hflip=Fa
                 if x > 0 and x < len(newpattern[iy]):
                     newpattern[y][x] = ogpattern[iy][ix]
     
+    newpattern = ["".join(j) for j in newpattern]
+    return newpattern
+
+
+def pattern_union(patterns):
+    for i in range(1, len(patterns)):
+        axis0different = len(patterns[i-1]) != len(patterns[i])
+        axis1different = len(patterns[i-1][0]) != len(patterns[i][0])
+        if axis0different or axis1different:
+            err = "Error: cannot perform pattern_union on patterns of dissimilar size"
+            err += "\n"
+            for i in range(patterns):
+                err += "Pattern {i+1}: rows = {len(patterns[i])}, cols = {len(patterns[i][0]}\n"
+            raise Exception(err)
+    
+    # Turn all patterns into lists of lists (for convenience)
+    rows = len(patterns[0])
+    cols = len(patterns[0][0])
+    newpatterns = []
+    for pattern in patterns:
+        newpatterns.append([list(j) for j in pattern])
+    patterns = newpatterns
+    blank_row = ["."]*cols
+    newpattern = [blank_row[:] for r in range(rows)]
+    for iy in range(rows):
+        for ix in range(cols):
+            alive = False
+            for ip, pattern in enumerate(patterns):
+                if pattern[iy][ix] == 'o':
+                    alive = True
+                    break
+            if alive:
+                newpattern[iy][ix] = 'o'
+
     newpattern = ["".join(j) for j in newpattern]
     return newpattern
 
@@ -218,5 +252,7 @@ def print_pattern_url(p1=None, p2=None,
 
 
 if __name__=="__main__":
-    print("\n".join(get_grid_pattern('acorn', 80, 80, xoffset=10, yoffset=20)))
-
+    #print("\n".join(get_grid_pattern('acorn', 80, 80, xoffset=10, yoffset=20)))
+    a1 = get_grid_pattern('acorn', 80, 80, xoffset=10, yoffset=20)
+    a2 = get_grid_pattern('acorn', 80, 80, xoffset=30, yoffset=20)
+    print("\n".join(pattern_union([a1, a2])))
