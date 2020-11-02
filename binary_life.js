@@ -44,7 +44,7 @@
         mapZone4Name: 'Zone 4',
         initialConditions1: '[{"50":[60]},{"51":[62]},{"52":[59,60,63,64,65]}]',
         initialConditions2: '[{"31":[29,30,33,34,35]},{"32":[32]},{"33":[30]}]',
-        columns: 100,
+        columns: 120,
         rows: 100,
         cellSize: 7
       }
@@ -53,7 +53,7 @@
     defaultMap : {
       initialConditions1: '[{"39":[60]},{"40":[62]},{"41":[59,60,63,64,65]}]',
       initialConditions2: '[{"23":[30]},{"22":[32]},{"21":[29,30,33,34,35]}]',
-      columns: 80,
+      columns: 120,
       rows: 100,
       cellSize: 7
     },
