@@ -1,6 +1,7 @@
 from mock_api import API
 from operator import indexOf
 import json
+import time
 
 class GOL(object):
     team_names = []
@@ -26,7 +27,7 @@ class GOL(object):
         """Constructor just sets everything up"""
         self.load_config(**kwargs)
         self.load_state()
-        self.get_live_counts()
+        self.prepare()
         self.running = True
 
     def __repr__(self):
@@ -54,13 +55,13 @@ class GOL(object):
         livecounts = gol.get_live_counts()
 
         rep += "\nGeneration: %d"%(self.generation)
-        rep += "\nLive cells, color 1: %d"%(livecounts[1])
-        rep += "\nLive cells, color 2: %d"%(livecounts[2])
-        rep += "\nLive cells, total: %d"%(livecounts[0])
-        rep += "\nVictory Percent: %0.1f %%"%(livecounts[3])
-        rep += "\nCoverage: %0.2f %%"%(livecounts[4])
-        rep += "\nTerritory, color 1: %0.2f %%"%(livecounts[5])
-        rep += "\nTerritory, color 2: %0.2f %%"%(livecounts[6])
+        rep += "\nLive cells, color 1: %d"%(livecounts['liveCells1'])
+        rep += "\nLive cells, color 2: %d"%(livecounts['liveCells2'])
+        rep += "\nLive cells, total: %d"%(livecounts['liveCells'])
+        rep += "\nVictory Percent: %0.1f %%"%(livecounts['victoryPct'])
+        rep += "\nCoverage: %0.2f %%"%(livecounts['coverage'])
+        rep += "\nTerritory, color 1: %0.2f %%"%(livecounts['territory1'])
+        rep += "\nTerritory, color 2: %0.2f %%"%(livecounts['territory2'])
 
         return rep
 
@@ -116,11 +117,20 @@ class GOL(object):
                     self.actual_state = self.add_cell(xx, yy, self.actual_state)
                     self.actual_state2 = self.add_cell(xx, yy, self.actual_state2)
 
+        maxdim = max(2*self.columns, 2*self.rows)
+        for i in range(maxdim):
+            self.running_avg_window.append(0)
+
+    def prepare(self):
+        # This actually inserts a calculation, I don't think we want that?
+        livecounts = self.get_live_counts()
+        self.update_moving_avg(livecounts)
+
     def update_moving_avg(self, livecounts):
         if not self.found_victor:
             maxdim = max(2*self.columns, 2*self.rows)
             if self.generation < maxdim:
-                self.running_avg_window.append(livecounts['victoryPct'])
+                self.running_avg_window[self.generation] = livecounts['victoryPct']
             else:
                 self.running_avg_window = self.running_avg_window[1:] + [livecounts['victoryPct']]
                 summ = sum(self.running_avg_window)
@@ -129,20 +139,24 @@ class GOL(object):
                 # update running average last 3
                 removed = self.running_avg_last3[0]
                 self.running_avg_last3 = self.running_avg_last3[1:] + [running_avg]
-
-                tol = 1e-12
+                
+                tol = 1e-8
+                # skip the first few steps where we're removing zeros
                 if not self.approx_equal(removed, 0.0, tol):
-                    # no victor found yet
                     b1 = self.approx_equal(self.running_avg_last3[0], self.running_avg_last3[1], tol)
                     b2 = self.approx_equal(self.running_avg_last3[1], self.running_avg_last3[2], tol)
                     if b1 and b2:
-                        self.found_victor = True
-                        if livecounts['liveCells1'] > livecounts['liveCells2']:
-                            self.who_won = 1
-                        elif livecounts['liveCells1'] < livecounts['liveCells2']:
-                            self.who_won = 2
-                        else:
-                            self.who_won = 0
+                        z1 = self.approx_equal(self.running_avg_last3[0], 50.0, tol)
+                        z2 = self.approx_equal(self.running_avg_last3[1], 50.0, tol)
+                        z3 = self.approx_equal(self.running_avg_last3[2], 50.0, tol)
+                        if not (z1 or z2 or z3):
+                            self.found_victor = True
+                            if livecounts['liveCells1'] > livecounts['liveCells2']:
+                                self.who_won = 1
+                            elif livecounts['liveCells1'] < livecounts['liveCells2']:
+                                self.who_won = 2
+                            else:
+                                self.who_won = 0
 
     def approx_equal(self, a, b, tol):
         SMOL = 1e-12
@@ -281,8 +295,6 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            #else:
-                            #    print(f"????? ({xx},{yy})")
 
                         # N
                         if state[i-1][k] == x:
@@ -296,8 +308,6 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            #else:
-                            #    print(f"????? ({xx},{yy})")
 
                         # NE
                         if state[i-1][k] == (x+1):
@@ -314,8 +324,6 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            #else:
-                            #    print(f"????? ({xx},{yy})")
 
                         # Break it off early
                         if state[i-1][k] > (x+1):
@@ -336,8 +344,6 @@ class GOL(object):
                         neighbors1 += 1
                     elif neighborcolor == 2:
                         neighbors2 += 1
-                    #else:
-                    #    print(f"????? ({xx},{yy})")
 
                 # E
                 if (state[i][k] == (x+1)):
@@ -350,8 +356,6 @@ class GOL(object):
                         neighbors1 += 1
                     elif neighborcolor == 2:
                         neighbors2 += 1
-                    #else:
-                    #    print(f"????? ({xx},{yy})")
 
                 # Break it off early
                 if (state[i][k] > (x+1)):
@@ -375,8 +379,6 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            #else:
-                            #    print(f"????? ({xx},{yy})")
 
                         # S
                         if (state[i+1][k] == x):
@@ -390,8 +392,6 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            #else:
-                            #    print(f"????? ({xx},{yy})")
 
                         # SE
                         if (state[i+1][k] == (x+1)):
@@ -408,8 +408,6 @@ class GOL(object):
                                 neighbors1 += 1
                             elif neighborcolor == 2:
                                 neighbors2 += 1
-                            #else:
-                            #    print(f"????? ({xx},{yy})")
 
                         # Break it off early
                         if state[i+1][k] > (x+1):
@@ -696,14 +694,23 @@ class GOL(object):
             self.running = False
             return self.get_live_counts()
         else:
+            self.generation += 1
             live_counts = self.next_generation()
             self.update_moving_avg(live_counts)
-            self.generation += 1
             return live_counts
 
 
 if __name__=="__main__":
-    gol = GOL(mapId=5)
+    gol = GOL(mapId=6)
+    t0 = time.time()
     while gol.running:
         live_counts = gol.next_step()
+        if gol.generation%100==0:
+            print(gol)
+            t1 = time.time()
+            difference = t1-t0
+            print("Took %0.4f s"%(difference))
+            t0 = t1
+
+    print(gol)
     print(gol.generation)

@@ -221,14 +221,32 @@ def twospaceshipgenerators_twocolors(rows, cols):
         else:
             box_patterns2.append(box_pattern)
 
-    spaceship_pattern1 = pattern_union([generator1] + box_patterns1)
-    spaceship_pattern2 = pattern_union([generator2] + box_patterns2)
+    boxship_pattern1 = pattern_union([generator1] + box_patterns1)
+    boxship_pattern2 = pattern_union([generator2] + box_patterns2)
 
-    pattern1_url = pattern2url(spaceship_pattern1)
-    pattern2_url = pattern2url(spaceship_pattern2)
+    pattern1_url = pattern2url(boxship_pattern1)
+    pattern2_url = pattern2url(boxship_pattern2)
 
     return pattern1_url, pattern2_url
 
+
+def twoswitchengines_twocolors(rows, cols):
+
+    centerx = cols//2
+    centery = rows//2
+
+    center1x = centerx - random.randint(10,20)
+    center2x = centerx + random.randint(10,20)
+    center1y = centery + random.randint(-10,10)
+    center2y = centery + random.randint(-10,10)
+
+    se1 = get_grid_pattern('switchengine', rows, cols, xoffset=center1x, yoffset=center1y)
+    se2 = get_grid_pattern('switchengine', rows, cols, xoffset=center2x, yoffset=center2y, vflip=True)
+
+    pattern1_url = pattern2url(se1)
+    pattern2_url = pattern2url(se2)
+
+    return pattern1_url, pattern2_url
 
 def hflip_pattern(pattern):
     """Flip a pattern horizontally"""

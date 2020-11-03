@@ -3,7 +3,8 @@ from util import (
     twoacorn_twocolor,
     timebomb_oscillators_twocolor,
     fourrabbits_twocolor,
-    twospaceshipgenerators_twocolors
+    twospaceshipgenerators_twocolors,
+    twoswitchengines_twocolors,
 )
 import random
 
@@ -172,23 +173,23 @@ class API(object):
             )
             return result
 
-        #elif mapId == 6:
-        #    # two multi min parvos metheuselas
-        #    s1, s2 = twomultuminparvos_twocolors(rows, cols)
-        #    url = f"?s1={s1}&s2={s2}"
-        #    result = dict(
-        #        id = 2,
-        #        mapName = "Spacetime Complex",
-        #        mapZone1Name = "spacetime",
-        #        mapZone2Name = "spaceyo",
-        #        mapZone3Name = "froyo",
-        #        mapZone4Name = "frotime",
-        #        initialConditions1 = s1,
-        #        initialConditions2 = s2,
-        #        url = url,
-        #        rows = rows,
-        #        columns = cols,
-        #        cellSize = 7
-        #    )
-        #    return result
+        elif mapId == 6:
+            # four switch engines
+            s1, s2 = twoswitchengines_twocolors(rows, cols)
+            url = f"?s1={s1}&s2={s2}"
+            result = dict(
+                id = 6,
+                mapName = "Site 500",
+                mapZone1Name = "Gammatron Accelerator",
+                mapZone2Name = "Radiobaric Chamber",
+                mapZone3Name = "Cryogenics Facility",
+                mapZone4Name = "Mysterious Landing Pad",
+                initialConditions1 = s1,
+                initialConditions2 = s2,
+                url = url,
+                rows = rows,
+                columns = cols,
+                cellSize = 7
+            )
+            return result
 
