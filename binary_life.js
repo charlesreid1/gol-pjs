@@ -192,7 +192,7 @@
      * On Load Event
      */
     init : function() {
-      //try {
+      try {
         this.listLife.init();   // Reset/init algorithm
         this.loadConfig();      // Load config from URL (autoplay, colors, zoom, ...)
         this.keepDOMElements(); // Keep DOM References (getElementsById)
@@ -200,10 +200,9 @@
         this.canvas.init();     // Init canvas GUI
         this.registerEvents();  // Register event handlers
         this.prepare();
-      //} catch (e) {
-      //  console.log("Error: " + e);
-      //  //alert("Error: "+e);
-      //}
+      } catch (e) {
+        alert("Error: "+e);
+      }
     },
 
 
@@ -348,9 +347,11 @@
       }
 
       // Initialize the victor percent running average window array
-      for (var i = 0; i < Math.max(this.columns, this.rows); i++) {
+      console.log('initializing running avg window');
+      for (var i = 0; i < Math.max(2*this.columns, 2*this.rows); i++) {
         this.runningAvgWindow[i] = 0;
       }
+      console.log(this.runningAvgWindow);
 
       // Initial grid config
       grid = parseInt(this.helpers.getUrlParameter('grid'), 10);
@@ -370,7 +371,6 @@
 
     /**
      * Load world state from URL parameter
-     * cmr - this is where we use initialState1 and initialState2
      */
     loadState : function() {
       var i, j, y;
@@ -488,6 +488,7 @@
         if (this.generation < maxDim) {
           // keep populating the window with victory pct
           this.runningAvgWindow[this.generation] = parseFloat(liveCounts.victoryPct);
+
         } else {
           // update running average window with next victory pct
           var removed = this.runningAvgWindow.shift();
@@ -503,30 +504,37 @@
           // update running average last 3
           removed = this.runningAvgLast3.shift();
           this.runningAvgLast3.push(runningAvg);
-          console.log(this.generation + ' ' + runningAvg);
 
-          var tol;
-          if (maxDim < 100) {
-            tol = 1e-12;
-          } else {
-            tol = 1e-8;
-          }
+          var tol = 1e-8;
+          //if (maxDim < 100) {
+          //  tol = 1e-12;
+          //} else {
+          //  tol = 1e-8;
+          //}
           if (!this.approxEqual(removed, 0.0, tol)) {
             // we have not found a victor yet, so check for one now
             var bool0eq1 = this.approxEqual(this.runningAvgLast3[0], this.runningAvgLast3[1], tol);
             var bool1eq2 = this.approxEqual(this.runningAvgLast3[1], this.runningAvgLast3[2], tol);
+
             if (bool0eq1 && bool1eq2) {
-              this.foundVictor = true;
-              this.showWinnersLosers = true;
-              if (liveCounts.liveCells1 > liveCounts.liveCells2) {
-                this.whoWon = 1;
+              var zero1 = this.approxEqual(this.runningAvgLast3[0], 50.0, tol)
+              var zero2 = this.approxEqual(this.runningAvgLast3[1], 50.0, tol)
+              var zero3 = this.approxEqual(this.runningAvgLast3[2], 50.0, tol)
+              if (!(zero1 || zero2 || zero3)) {
+                this.foundVictor = true;
+                this.showWinnersLosers = true;
+                this.handlers.buttons.run();
+                if (liveCounts.liveCells1 > liveCounts.liveCells2) {
+                  this.whoWon = 1;
+                } else if (liveCounts.liveCells1 < liveCounts.liveCells2) {
+                  this.whoWon = 2;
+                  this.running = false;
+                } else {
+                  // huh? should not be here
+                  this.showWinnersLosers = false;
+                }
+                // make sure
                 this.running = false;
-              } else if (liveCounts.liveCells1 < liveCounts.liveCells2) {
-                this.whoWon = 2;
-                this.running = false;
-              } else {
-                // huh? should not be here
-                this.showWinnersLosers = false;
               }
             }
           }
@@ -585,7 +593,7 @@
       this.updateStatisticsElements(liveCounts);
 
       // Indicate winner/loser, if we know
-      this.checkForVictor(liveCounts);
+      //this.checkForVictor(liveCounts);
       if (this.showWinnersLosers) {
         if (this.whoWon == 1) {
           this.element.team1winner.innerHTML = 'W';
@@ -1068,7 +1076,6 @@
 
       /**
        * drawCell
-       * cmr - this is where we color by color
        */
       drawCell : function (i, j, alive) {
 
