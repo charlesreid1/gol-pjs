@@ -347,11 +347,9 @@
       }
 
       // Initialize the victor percent running average window array
-      console.log('initializing running avg window');
       for (var i = 0; i < Math.max(2*this.columns, 2*this.rows); i++) {
         this.runningAvgWindow[i] = 0;
       }
-      console.log(this.runningAvgWindow);
 
       // Initial grid config
       grid = parseInt(this.helpers.getUrlParameter('grid'), 10);
