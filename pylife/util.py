@@ -188,7 +188,7 @@ def fourrabbits_twocolor(rows, cols, seed=None):
     return pattern1_url, pattern2_url
 
 
-def twospaceshipgenerators_twocolors(rows, cols):
+def twospaceshipgenerators_twocolor(rows, cols):
     # backrake 2 laying trail of glider ships
     # both backrakes start at very bottom
     # squares in middle, of alternating colors
@@ -230,23 +230,183 @@ def twospaceshipgenerators_twocolors(rows, cols):
     return pattern1_url, pattern2_url
 
 
-def twoswitchengines_twocolors(rows, cols):
+def eightr_twocolor(rows, cols):
 
     centerx = cols//2
     centery = rows//2
 
-    center1x = centerx - random.randint(10,20)
-    center2x = centerx + random.randint(10,20)
-    center1y = centery + random.randint(-10,10)
-    center2y = centery + random.randint(-10,10)
+    # color 1
+    r1a = get_grid_pattern(
+        'rpentomino', 
+        rows, 
+        cols, 
+        xoffset=centerx - random.randint(5,10), 
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    r1b = get_grid_pattern(
+        'rpentomino', 
+        rows, 
+        cols, 
+        xoffset=centerx - random.randint(15,20), 
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    r1c = get_grid_pattern(
+        'rpentomino', 
+        rows, 
+        cols, 
+        xoffset=centerx - random.randint(25,30),
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    r1d = get_grid_pattern(
+        'rpentomino', 
+        rows, 
+        cols, 
+        xoffset=centerx - random.randint(35,40),
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    s1 = pattern_union([r1a, r1b, r1c, r1d])
 
-    se1 = get_grid_pattern('switchengine', rows, cols, xoffset=center1x, yoffset=center1y)
-    se2 = get_grid_pattern('switchengine', rows, cols, xoffset=center2x, yoffset=center2y, vflip=True)
+    # color 2
+    r2a = get_grid_pattern(
+        'rpentomino', 
+        rows, 
+        cols, 
+        xoffset=centerx + random.randint(5,10), 
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    r2b = get_grid_pattern(
+        'rpentomino', 
+        rows, 
+        cols, 
+        xoffset=centerx + random.randint(15,20), 
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    r2c = get_grid_pattern(
+        'rpentomino', 
+        rows, 
+        cols, 
+        xoffset=centerx + random.randint(25,30),
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    r2d = get_grid_pattern(
+        'rpentomino', 
+        rows, 
+        cols, 
+        xoffset=centerx + random.randint(35,40),
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    s2 = pattern_union([r2a, r2b, r2c, r2d])
 
-    pattern1_url = pattern2url(se1)
-    pattern2_url = pattern2url(se2)
+    pattern1_url = pattern2url(s1)
+    pattern2_url = pattern2url(s2)
 
     return pattern1_url, pattern2_url
+
+
+def eightpi_twocolor(rows, cols):
+    centerx = cols//2
+    centery = rows//2
+
+    # color 1
+    p1a = get_grid_pattern(
+        'piheptomino', 
+        rows, 
+        cols, 
+        xoffset=centerx - random.randint(5,10), 
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    p1b = get_grid_pattern(
+        'piheptomino', 
+        rows, 
+        cols, 
+        xoffset=centerx - random.randint(15,20), 
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    p1c = get_grid_pattern(
+        'piheptomino', 
+        rows, 
+        cols, 
+        xoffset=centerx - random.randint(25,30),
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    p1d = get_grid_pattern(
+        'piheptomino', 
+        rows, 
+        cols, 
+        xoffset=centerx + random.randint(25,30),
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    s1 = pattern_union([p1a, p1b, p1c, p1d])
+
+    # color 2
+    p2a = get_grid_pattern(
+        'piheptomino', 
+        rows, 
+        cols, 
+        xoffset=centerx + random.randint(5,10), 
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    p2b = get_grid_pattern(
+        'piheptomino', 
+        rows, 
+        cols, 
+        xoffset=centerx + random.randint(15,20), 
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    p2c = get_grid_pattern(
+        'piheptomino', 
+        rows, 
+        cols, 
+        xoffset=centerx + random.randint(25,30),
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    p2d = get_grid_pattern(
+        'piheptomino', 
+        rows, 
+        cols, 
+        xoffset=centerx + random.randint(35,40),
+        yoffset=centery + random.randint(-10, 10),
+        hflip=bool(random.getrandbits(1)),
+        vflip=bool(random.getrandbits(1)),
+    )
+    s2 = pattern_union([p2a, p2b, p2c, p2d])
+    s2 = p2a
+
+    pattern1_url = pattern2url(s1)
+    pattern2_url = pattern2url(s2)
+
+    return pattern1_url, pattern2_url
+
 
 def hflip_pattern(pattern):
     """Flip a pattern horizontally"""

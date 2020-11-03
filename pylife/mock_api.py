@@ -3,8 +3,9 @@ from util import (
     twoacorn_twocolor,
     timebomb_oscillators_twocolor,
     fourrabbits_twocolor,
-    twospaceshipgenerators_twocolors,
-    twoswitchengines_twocolors,
+    twospaceshipgenerators_twocolor,
+    eightr_twocolor,
+    eightpi_twocolor,
 )
 import random
 
@@ -155,7 +156,7 @@ class API(object):
             # two spaceship generators
             # backrake 2 laying a trail of glider ships
             # squares in the middle of alternating colors
-            s1, s2 = twospaceshipgenerators_twocolors(rows, cols)
+            s1, s2 = twospaceshipgenerators_twocolor(rows, cols)
             url = f"?s1={s1}&s2={s2}"
             result = dict(
                 id = 5,
@@ -174,8 +175,28 @@ class API(object):
             return result
 
         elif mapId == 6:
-            # four switch engines
-            s1, s2 = twoswitchengines_twocolors(rows, cols)
+            # eight r pentominoes
+            s1, s2 = eightr_twocolor(rows, cols)
+            url = f"?s1={s1}&s2={s2}"
+            result = dict(
+                id = 6,
+                mapName = "Site 500",
+                mapZone1Name = "Gammatron Accelerator",
+                mapZone2Name = "Radiobaric Chamber",
+                mapZone3Name = "Cryogenics Facility",
+                mapZone4Name = "Mysterious Landing Pad",
+                initialConditions1 = s1,
+                initialConditions2 = s2,
+                url = url,
+                rows = rows,
+                columns = cols,
+                cellSize = 7
+            )
+            return result
+
+        elif mapId == 7:
+            # eight pi pentominoes
+            s1, s2 = eightpi_twocolor(rows, cols)
             url = f"?s1={s1}&s2={s2}"
             result = dict(
                 id = 6,

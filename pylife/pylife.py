@@ -145,18 +145,18 @@ class GOL(object):
                 if not self.approx_equal(removed, 0.0, tol):
                     b1 = self.approx_equal(self.running_avg_last3[0], self.running_avg_last3[1], tol)
                     b2 = self.approx_equal(self.running_avg_last3[1], self.running_avg_last3[2], tol)
-                    if b1 and b2:
+                    zerocells = livecounts['liveCells1']==0 or livecounts['liveCells2']==0
+                    if (b1 and b2) or zerocells:
                         z1 = self.approx_equal(self.running_avg_last3[0], 50.0, tol)
                         z2 = self.approx_equal(self.running_avg_last3[1], 50.0, tol)
                         z3 = self.approx_equal(self.running_avg_last3[2], 50.0, tol)
-                        if not (z1 or z2 or z3):
-                            self.found_victor = True
+                        if (not (z1 or z2 or z3)) or zerocells:
                             if livecounts['liveCells1'] > livecounts['liveCells2']:
+                                self.found_victor = True
                                 self.who_won = 1
                             elif livecounts['liveCells1'] < livecounts['liveCells2']:
+                                self.found_victor = True
                                 self.who_won = 2
-                            else:
-                                self.who_won = 0
 
     def approx_equal(self, a, b, tol):
         SMOL = 1e-12
@@ -701,7 +701,7 @@ class GOL(object):
 
 
 if __name__=="__main__":
-    gol = GOL(mapId=6)
+    gol = GOL(mapId=7)
     t0 = time.time()
     while gol.running:
         live_counts = gol.next_step()
