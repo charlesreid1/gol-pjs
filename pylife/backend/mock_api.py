@@ -1,4 +1,4 @@
-from util import (
+from .util import (
     random_twocolor, 
     twoacorn_twocolor,
     timebomb_oscillators_twocolor,
@@ -6,12 +6,17 @@ from util import (
     twospaceshipgenerators_twocolor,
     eightr_twocolor,
     eightpi_twocolor,
+    twomultum_twocolor,
 )
 import random
 
 class API(object):
     @classmethod
-    def get_game(cls, gameId):
+    def get_random_game(cls, gameId):
+        # Load team info
+        # Pick two random teams
+        # Load map info
+        # Pick a random map
         default_game_api_result = dict(
           id = '0000-0000-0000',
           team1Name = 'Purple',
@@ -200,11 +205,31 @@ class API(object):
             url = f"?s1={s1}&s2={s2}"
             result = dict(
                 id = 6,
-                mapName = "Site 500",
-                mapZone1Name = "Gammatron Accelerator",
-                mapZone2Name = "Radiobaric Chamber",
-                mapZone3Name = "Cryogenics Facility",
-                mapZone4Name = "Mysterious Landing Pad",
+                mapName = "Abandoned Lab Space",
+                mapZone1Name = "Biohazard Lab",
+                mapZone2Name = "Cryptobiology Lab",
+                mapZone3Name = "Electronics Lab",
+                mapZone4Name = "Chemistry Lab",
+                initialConditions1 = s1,
+                initialConditions2 = s2,
+                url = url,
+                rows = rows,
+                columns = cols,
+                cellSize = 7
+            )
+            return result
+
+        elif mapId == 8:
+            # two multum in parvos
+            s1, s2 = twomultum_twocolor(rows, cols)
+            url = f"?s1={s1}&s2={s2}"
+            result = dict(
+                id = 6,
+                mapName = "Abandoned Lab Space",
+                mapZone1Name = "Biohazard Lab",
+                mapZone2Name = "Cryptobiology Lab",
+                mapZone3Name = "Electronics Lab",
+                mapZone4Name = "Chemistry Lab",
                 initialConditions1 = s1,
                 initialConditions2 = s2,
                 url = url,

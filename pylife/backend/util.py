@@ -355,7 +355,7 @@ def eightpi_twocolor(rows, cols):
         'piheptomino', 
         rows, 
         cols, 
-        xoffset=centerx + random.randint(25,30),
+        xoffset=centerx - random.randint(35,40),
         yoffset=centery + random.randint(-10, 10),
         hflip=bool(random.getrandbits(1)),
         vflip=bool(random.getrandbits(1)),
@@ -400,10 +400,38 @@ def eightpi_twocolor(rows, cols):
         vflip=bool(random.getrandbits(1)),
     )
     s2 = pattern_union([p2a, p2b, p2c, p2d])
-    s2 = p2a
 
     pattern1_url = pattern2url(s1)
     pattern2_url = pattern2url(s2)
+
+    return pattern1_url, pattern2_url
+
+
+def twomultum_twocolor(rows, cols):
+    centerx = cols//2
+    centery1 = rows//2
+    centery2 = rows//2 #2*rows//3
+
+    p1 = get_grid_pattern(
+        'multuminparvo', 
+        rows, 
+        cols, 
+        xoffset=centerx + random.randint(-10,10), 
+        yoffset=centery1 + random.randint(10,30),
+        vflip=False
+    )
+
+    p2 = get_grid_pattern(
+        'multuminparvo', 
+        rows, 
+        cols, 
+        xoffset=centerx + random.randint(-10,10), 
+        yoffset=centery2 - random.randint(10,30),
+        vflip=True
+    )
+
+    pattern1_url = pattern2url(p1)
+    pattern2_url = pattern2url(p2)
 
     return pattern1_url, pattern2_url
 

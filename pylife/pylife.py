@@ -1,4 +1,4 @@
-from mock_api import API
+from backend.mock_api import API
 from operator import indexOf
 import json
 import time
@@ -701,7 +701,7 @@ class GOL(object):
 
 
 if __name__=="__main__":
-    gol = GOL(mapId=7)
+    gol = GOL(mapId=8)
     t0 = time.time()
     while gol.running:
         live_counts = gol.next_step()
