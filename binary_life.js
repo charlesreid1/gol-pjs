@@ -504,35 +504,29 @@
           this.runningAvgLast3.push(runningAvg);
 
           var tol = 1e-8;
-          //if (maxDim < 100) {
-          //  tol = 1e-12;
-          //} else {
-          //  tol = 1e-8;
-          //}
           if (!this.approxEqual(removed, 0.0, tol)) {
             // we have not found a victor yet, so check for one now
             var bool0eq1 = this.approxEqual(this.runningAvgLast3[0], this.runningAvgLast3[1], tol);
             var bool1eq2 = this.approxEqual(this.runningAvgLast3[1], this.runningAvgLast3[2], tol);
-
-            if (bool0eq1 && bool1eq2) {
+            var zerocells = ((liveCounts.liveCells1 == 0) || (liveCounts.liveCells2 == 0));
+            if ((bool0eq1 && bool1eq2) || zerocells) {
               var zero1 = this.approxEqual(this.runningAvgLast3[0], 50.0, tol)
               var zero2 = this.approxEqual(this.runningAvgLast3[1], 50.0, tol)
               var zero3 = this.approxEqual(this.runningAvgLast3[2], 50.0, tol)
-              if (!(zero1 || zero2 || zero3)) {
-                this.foundVictor = true;
-                this.showWinnersLosers = true;
-                this.handlers.buttons.run();
+              if ((!(zero1 || zero2 || zero3)) || zerocells) {
                 if (liveCounts.liveCells1 > liveCounts.liveCells2) {
                   this.whoWon = 1;
+                  this.foundVictor = true;
+                  this.showWinnersLosers = true;
+                  this.handlers.buttons.run();
+                  this.running = false;
                 } else if (liveCounts.liveCells1 < liveCounts.liveCells2) {
                   this.whoWon = 2;
+                  this.foundVictor = true;
+                  this.showWinnersLosers = true;
+                  this.handlers.buttons.run();
                   this.running = false;
-                } else {
-                  // huh? should not be here
-                  this.showWinnersLosers = false;
                 }
-                // make sure
-                this.running = false;
               }
             }
           }
