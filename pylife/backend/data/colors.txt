@@ -1,0 +1,6 @@
+blue,1375b7
+red,c93135
+purple,9963ab
+orange,e86215
+seafoam,9fe2bf
+candyred,ff1717
