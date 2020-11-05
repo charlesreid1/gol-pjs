@@ -68,7 +68,7 @@ class GOL(object):
     def load_config(self, **kwargs):
         """Load configuration from user-provided input params"""
         if 'gameId' in kwargs:
-            self.game_api_result = API.get_game(kwargs['gameId'])
+            self.game_api_result = API.get_random_game()
             self.game_map = self.game_api_result['map']
         elif 'mapId' in kwargs:
             self.game_api_result = API.get_default_game()
