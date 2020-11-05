@@ -1,3 +1,5 @@
+import uuid
+import random
 from .util import (
     random_twocolor, 
     twoacorn_twocolor,
@@ -8,28 +10,58 @@ from .util import (
     eightpi_twocolor,
     twomultum_twocolor,
 )
-import random
 
 class API(object):
     @classmethod
-    def get_random_game(cls, gameId):
-        # Load team info
-        # Pick two random teams
-        # Load map info
-        # Pick a random map
-        default_game_api_result = dict(
+    def get_teams(cls):
+        d = {}
+        with open('data/teams.json', 'r') as f:
+            d = json.load(f)
+        return d
+
+    @classmethod
+    def get_random_game(cls):
+        teams = cls.get_teams()
+        team1i = random.randint(0, len(teams)-1)
+        team2i = random.randint(0, len(teams)-1)
+        while team2i==team1i:
+            team2i = random.randint(0, len(teams)-1)
+        team1 = teams[team1i]
+        team2 = teams[team2i]
+        game_id = str(uuid.uuid4())
+        result = dict(
+          id = game_id,
+          team1Name = team1['teamName'],
+          team1Color = team1['teamColor'],
+          team2Name = team2['teamName'],
+          team2Color = team2['teamColor'],
+          map = cls.get_random_map(),
+        )
+        return result
+    
+    @classmethod
+    def get_default_game(cls):
+        """Default team names/colors"""
+        result = dict(
           id = '0000-0000-0000',
           team1Name = 'Purple',
           team1Color = '#9963AB',
           team2Name = 'Orange',
-          team2Color = '#E86215',
-          map = cls.get_default_map(),
+          team2Color = '#E86215'
         )
-        return default_game_api_result
-    
+        return result
+
+    @classmethod
+    def get_random_map(cls):
+        map_ids = list(range(1,8+1))
+        random_map_id = map_ids[random.randint(0,len(map_ids)-1)]
+        m = get_map(random_map_id)
+        return m
+
     @classmethod
     def get_default_map(cls):
-        map_api_result = dict(
+        """Returns the default two-acorn map"""
+        result = dict(
           id = 1,
           mapName = 'Default Map',
           mapZone1Name = 'Zone 1',
@@ -42,18 +74,7 @@ class API(object):
           rows = 10,
           cellSize = 7
         )
-        return map_api_result
-
-    @classmethod
-    def get_default_game(cls):
-        default_game_api_result = dict(
-          id = '0000-0000-0000',
-          team1Name = 'Purple',
-          team1Color = '#9963AB',
-          team2Name = 'Orange',
-          team2Color = '#E86215'
-        )
-        return default_game_api_result
+        return result
 
     @classmethod
     def get_map(cls, mapId):
