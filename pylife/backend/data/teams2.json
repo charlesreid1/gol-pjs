@@ -1,0 +1,94 @@
+{
+    "College of Sciences": {
+        "Monday-Wednesday Division": [
+            {
+                "teamId": "0cc4ede7-37de-490b-8429-5969837ca1cf",
+                "teamName": "Data Criminology Department",
+                "teamColor": "#60495a"
+            },
+            {
+                "teamId": "69b329dd-3500-4ea9-b68b-66e47252d895",
+                "teamName": "Sabermetrics Department",
+                "teamColor": "#9fe2bf"
+            },
+            {
+                "teamId": "12ec8a48-870d-428d-bbdc-6e791b771186",
+                "teamName": "Mathematics Department",
+                "teamColor": "#9963ab"
+            },
+            {
+                "teamId": "4b0765b0-1ada-470b-bc76-4f004200526c",
+                "teamName": "Physics Department",
+                "teamColor": "#ff1717"
+            }
+        ],
+        "Tuesday-Thursday Division": [
+            {
+                "teamId": "a9e07e95-e1a1-45da-870e-5073b238b4b2",
+                "teamName": "Xenobiology Department",
+                "teamColor": "#bbdef0"
+            },
+            {
+                "teamId": "a37bb689-1b15-4f40-92a0-2d270acefbe4",
+                "teamName": "Department of BONE",
+                "teamColor": "#6d1a36"
+            },
+            {
+                "teamId": "0f57285c-b61e-4e96-955d-df4e032c9494",
+                "teamName": "Horticulture Department",
+                "teamColor": "#2c514c"
+            },
+            {
+                "teamId": "4f51e5e9-8633-44a0-874b-34f9025435a5",
+                "teamName": "Heliophysics Department",
+                "teamColor": "#7fb685"
+            }
+        ]
+    },
+    "College of Arts": {
+        "Monday-Wednesday Division": [
+            {
+                "teamId": "66b76929-2401-4e2b-847a-2580632c732b",
+                "teamName": "Splorts Business Department",
+                "teamColor": "#1375b7"
+            },
+            {
+                "teamId": "9c0b7b22-98f8-4e3c-8193-b05af9b791be",
+                "teamName": "Department of Cats",
+                "teamColor": "#f2c57c"
+            },
+            {
+                "teamId": "3ad5ac8d-25f3-4c54-8e85-a1626bba7ef3",
+                "teamName": "Economics Department",
+                "teamColor": "#e86215"
+            },
+            {
+                "teamId": "fe58b2e0-f6cf-4431-ab19-6aa8c70f5360",
+                "teamName": "Anti-Tourism & Hotel Abandonment",
+                "teamColor": "#63535b"
+            }
+        ],
+        "Tuesday-Thursday Division": [
+            {
+                "teamId": "cea9491d-d408-431f-94b7-46c467c25478",
+                "teamName": "Department of Magic",
+                "teamColor": "#53917e"
+            },
+            {
+                "teamId": "b7ef8708-1d48-4677-8653-5511f5c21bda",
+                "teamName": "Music Department",
+                "teamColor": "#ef6f6c"
+            },
+            {
+                "teamId": "82c4ea01-97f2-44a8-a6c1-e30c1cbf69d1",
+                "teamName": "Anti-Communications Department",
+                "teamColor": "#f08700"
+            },
+            {
+                "teamId": "e7eaeaba-737c-4cd5-9815-0b23c0736aa8",
+                "teamName": "Philosophy Department",
+                "teamColor": "#3d0c11"
+            }
+        ]
+    }
+}
