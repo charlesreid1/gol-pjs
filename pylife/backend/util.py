@@ -3,6 +3,20 @@ import os
 import re
 
 
+def shuffle(test_list):
+    # using Fisher–Yates shuffle Algorithm 
+    # to shuffle a list 
+    for i in range(len(test_list)-1, 0, -1): 
+          
+        # Pick a random index from 0 to i  
+        j = random.randint(0, i + 1)  
+        
+        # Swap arr[i] with the element at random index  
+        test_list[i], test_list[j] = test_list[j], test_list[i]  
+
+    return test_list
+
+
 def random_twocolor(rows, cols):
     """
     Generate a random two-color list life initialization.
