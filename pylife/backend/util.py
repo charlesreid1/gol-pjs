@@ -505,7 +505,11 @@ def get_pattern(pattern_name, hflip=False, vflip=False, rotdeg=0):
     For a given pattern, return the .o diagram
     as a list of strings, one string = one row
     """
-    fname = 'patterns/' + pattern_name + '.txt'
+    fname = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        'patterns',
+        pattern_name + '.txt'
+    )
     if os.path.exists(fname):
         with open(fname, 'r') as f:
             pattern = f.readlines()
