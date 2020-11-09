@@ -168,23 +168,29 @@
     // alive color sets are either set by the game (game mode)
     // or set by the user via the schemes (sandbox mode)
     colors : {
-      current : 0,
+      current1 : 0,
+      current2 : 0,
       schedule : false,
       dead: realBackgroundColor,
       trail: grays,
       alive: null,
+      alive_labels: ['Team 1','Team 2'],
 
       // Only used in sandbox mode
-      schemes : [
-        {
-          alive: ['#9963AB', '#E86215'],
-          alive_labels: ['Purple', 'Orange'],
-        },
-        {
-          alive: ["#9FE2BF", "#FF1717"],
-          alive_labels: ['Green', 'Red'],
-        }
-      ],
+
+      // Hot League:
+      // bad colors: 2c514c (too dark/bland)
+      //schemes1 : ['#a0e7e5','#ff66cc','#9963ab','#ff1717','#ffb627','#697a21','#0dab76','#e7d7c1'],
+      //schemes2 : ['#ff66cc','#9963ab','#ff1717','#ffb627','#697a21','#0dab76','#e7d7c1','#a0e7e5'],
+
+      // Cold League:
+      // bad colors: 9fe2bf (seems too similar to another color in hot league), 53917e (same), 
+      //schemes1 : ['#3e92cc','#f2c57c','#e86215','#a0e7e5','#53917e','#ef6f6c','#f08700','#990000'],
+      //schemes2 : ['#f2c57c','#e86215','#a0e7e5','#53917e','#ef6f6c','#f08700','#990000','#3e92cc'],
+
+      schemes1 : ['#a0e7e5','#ff66cc','#9963ab','#ff1717','#ffb627','#697a21','#0dab76','#e7d7c1'],
+      schemes2 : ['#3e92cc','#f2c57c','#e86215','#a0e7e5','#53917e','#ef6f6c','#f08700','#990000'],
+
     },
 
 
@@ -201,6 +207,7 @@
         this.registerEvents();  // Register event handlers
         this.prepare();
       } catch (e) {
+        console.log(e);
         alert("Error: "+e);
       }
     },
@@ -296,6 +303,7 @@
           this.grid.mapOverlay = true;
 
         } else {
+          // User did not specify a map
           if (this.random == 1) {
             // Use random map, default zoom
             // Initial conditions
@@ -339,9 +347,9 @@
             colorpal = 1;
           }
           this.colors.current = colorpal - 1;
-          this.colors.alive = this.colors.schemes[this.colors.current].alive;
+          this.colors.alive = [this.colors.schemes1[GOL.colors.current1], this.colors.schemes2[GOL.colors.current2]];
           // Replace team names with color labels
-          this.teamNames = this.colors.schemes[this.colors.current].alive_labels;
+          this.teamNames = this.colors.alive_labels;
 
         }
       }
@@ -688,7 +696,8 @@
       // Layout
       this.helpers.registerEvent(document.getElementById('buttonTrail'), 'click', this.handlers.buttons.trail, false);
       this.helpers.registerEvent(document.getElementById('buttonGrid'), 'click', this.handlers.buttons.grid, false);
-      this.helpers.registerEvent(document.getElementById('buttonColors'), 'click', this.handlers.buttons.colorcycle, false);
+      this.helpers.registerEvent(document.getElementById('buttonColors1'), 'click', this.handlers.buttons.colorcycle1, false);
+      this.helpers.registerEvent(document.getElementById('buttonColors2'), 'click', this.handlers.buttons.colorcycle2, false);
     },
 
 
@@ -930,10 +939,22 @@
         /**
          * Cycle through the color schemes
          */
-        colorcycle : function() {
-          GOL.colors.current = (GOL.colors.current + 1) % GOL.colors.schemes.length;
-          GOL.colors.alive = GOL.colors.schemes[GOL.colors.current].alive;
-          GOL.teamNames = GOL.colors.schemes[GOL.colors.current].alive_labels;
+        colorcycle1 : function() {
+          GOL.colors.current1 = (GOL.colors.current1 + 1) % GOL.colors.schemes1.length;
+          GOL.colors.alive = [GOL.colors.schemes1[GOL.colors.current1], GOL.colors.schemes2[GOL.colors.current2]];
+          GOL.teamNames = GOL.colors.alive_labels;
+          GOL.updateTeamNamesColors();
+          if (GOL.running) {
+            GOL.colors.schedule = true; // Delay redraw
+          } else {
+            GOL.canvas.drawWorld(); // Force complete redraw
+          }
+        },
+
+        colorcycle2 : function() {
+          GOL.colors.current2 = (GOL.colors.current2 + 1) % GOL.colors.schemes2.length;
+          GOL.colors.alive = [GOL.colors.schemes1[GOL.colors.current1], GOL.colors.schemes2[GOL.colors.current2]];
+          GOL.teamNames = GOL.colors.alive_labels;
           GOL.updateTeamNamesColors();
           if (GOL.running) {
             GOL.colors.schedule = true; // Delay redraw
