@@ -52,7 +52,7 @@ class GOL(object):
         rep = "\n".join(s)
         rep += "\n"
 
-        livecounts = gol.get_live_counts()
+        livecounts = self.get_live_counts()
 
         rep += "\nGeneration: %d"%(self.generation)
         rep += "\nLive cells, color 1: %d"%(livecounts['liveCells1'])
@@ -104,22 +104,21 @@ class GOL(object):
         s2 = json.loads(self.ic2)
 
         for s1row in s1:
-            for y in s1row.keys():
+            for y in s1row:
                 yy = int(y)
                 for xx in s1row[y]:
                     self.actual_state = self.add_cell(xx, yy, self.actual_state)
                     self.actual_state1 = self.add_cell(xx, yy, self.actual_state1)
 
         for s2row in s2:
-            for y in s2row.keys():
+            for y in s2row:
                 yy = int(y)
                 for xx in s2row[y]:
                     self.actual_state = self.add_cell(xx, yy, self.actual_state)
                     self.actual_state2 = self.add_cell(xx, yy, self.actual_state2)
 
         maxdim = max(2*self.columns, 2*self.rows)
-        for i in range(maxdim):
-            self.running_avg_window.append(0)
+        self.running_avg_window = [0,]*maxdim
 
     def prepare(self):
         # This actually inserts a calculation, I don't think we want that?
@@ -176,7 +175,7 @@ class GOL(object):
 
     def get_cell_color(self, x, y):
         """
-        Get the color of the given cell (1 or 2, 0 for dead)
+        Get the color of the given cell (1 or 2)
         """
         for row in self.actual_state1:
             if (row[0] == y):
@@ -186,15 +185,17 @@ class GOL(object):
             elif (row[0] > y):
                 break
 
-        for row in self.actual_state2:
-            if (row[0] == y):
-                for c in row[1:]:
-                    if c==x:
-                        return 2
-            elif (row[0] > y):
-                break
+        return 2
 
-        return 0
+        #for row in self.actual_state2:
+        #    if (row[0] == y):
+        #        for c in row[1:]:
+        #            if c==x:
+        #                return 2
+        #    elif (row[0] > y):
+        #        break
+
+        #return 0
 
     def remove_cell(self, x, y, state):
         """
@@ -221,23 +222,18 @@ class GOL(object):
         """
         # Empty state case
         if len(state)==0:
-            state.append([y, x])
-            return state
+            return [[y, x]]
 
         # figure out where in the list to insert the new cell
         if (y < state[0][0]):
             # y is smaller than any existing y,
             # so put this point at beginning
-            new_state = [[y, x]]
-            for row in state:
-                new_state.append(row)
-            return new_state
+            return [[y, x]] + state
 
         elif (y > state[-1][0]):
             # y is larger than any existing y,
             # so put this point at end
-            state.append([y,x])
-            return state
+            return state + [[y, x]]
 
         else:
             # Adding to the middle
@@ -245,7 +241,7 @@ class GOL(object):
             added = False
             for row in state:
                 if (not added) and (row[0]==y):
-                    # This level exists
+                    # This level already exists
                     new_row = [y]
                     for c in row[1:]:
                         if (not added) and (x < c):
@@ -590,7 +586,7 @@ class GOL(object):
                         key = str(xx) + ',' + str(yy)
 
                         # counting number of dead neighbors
-                        if key not in all_dead_neighbors.keys():
+                        if key not in all_dead_neighbors:
                             all_dead_neighbors[key] = 1
                         else:
                             all_dead_neighbors[key] += 1
@@ -608,7 +604,7 @@ class GOL(object):
                     self.redraw_list.append([x, y, 0])
 
         # Process dead neighbors
-        for key in all_dead_neighbors.keys():
+        for key in all_dead_neighbors:
             if all_dead_neighbors[key] == 3:
                 # This cell is dead, but has enough neighbors
                 # that are alive that it will make new life
@@ -639,7 +635,7 @@ class GOL(object):
         Compute statistics.
         """
 
-        def count_live_cells(state):
+        def _count_live_cells(state):
             livecells = 0
             for i in range(len(state)):
                 if (state[i][0] >= 0) and (state[i][0] < self.rows):
@@ -648,9 +644,9 @@ class GOL(object):
                             livecells += 1
             return livecells
 
-        livecells  = count_live_cells(self.actual_state)
-        livecells1 = count_live_cells(self.actual_state1)
-        livecells2 = count_live_cells(self.actual_state2)
+        livecells  = _count_live_cells(self.actual_state)
+        livecells1 = _count_live_cells(self.actual_state1)
+        livecells2 = _count_live_cells(self.actual_state2)
 
         self.livecells  = livecells
         self.livecells1 = livecells1
@@ -699,18 +695,15 @@ class GOL(object):
             self.update_moving_avg(live_counts)
             return live_counts
 
-
-if __name__=="__main__":
+def main():
     gol = GOL(mapId=8)
-    t0 = time.time()
     while gol.running:
         live_counts = gol.next_step()
-        if gol.generation%100==0:
-            print(gol)
-            t1 = time.time()
-            difference = t1-t0
-            print("Took %0.4f s"%(difference))
-            t0 = t1
 
-    print(gol)
-    print(gol.generation)
+    print(gol.get_live_counts())
+
+if __name__=="__main__":
+    #import cProfile
+    #cProfile.run('main()')
+    main()
+
