@@ -246,11 +246,11 @@ class API(object):
             url = f"?s1={s1}&s2={s2}"
             result = dict(
                 id = 6,
-                mapName = "Abandoned Lab Space",
-                mapZone1Name = "Biohazard Lab",
-                mapZone2Name = "Cryptobiology Lab",
-                mapZone3Name = "Electronics Lab",
-                mapZone4Name = "Chemistry Lab",
+                mapName = "Underground Cave Complex",
+                mapZone1Name = "Haunted Cave",
+                mapZone2Name = "Rainbow Cave",
+                mapZone3Name = "Spider Cave",
+                mapZone4Name = "Underwater Cave",
                 initialConditions1 = s1,
                 initialConditions2 = s2,
                 url = url,
